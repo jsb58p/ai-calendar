@@ -2,7 +2,7 @@ import { Skeleton } from '../Skeleton'
 
 export function CalendarSkeleton() {
   return (
-    <div data-testid="calendar-skeleton">
+    <div data-testid="calendar-skeleton" className="bg-bg-base">
       {/* Month navigation row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
         <Skeleton className="h-8 w-8" />

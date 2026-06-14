@@ -97,49 +97,45 @@ function AppContent() {
 
   const activeSchedule = activeGoalId ? (schedules[activeGoalId] ?? null) : null
 
-  if (isRehydrating) {
-    return (
-      <main style={{ padding: '16px' }}>
-        <CalendarSkeleton />
-      </main>
-    )
-  }
-
-  if (activeSchedule === null) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <GoalInput />
-      </div>
-    )
-  }
-
   return (
-    <div>
-      <Header />
+    <div className="min-h-screen bg-bg-base text-text-primary flex flex-col">
+      {isRehydrating ? (
+        <div className="flex-1 p-6 animate-pulse-slow">
+          <CalendarSkeleton />
+        </div>
+      ) : activeSchedule === null ? (
+        <div className="flex-1 flex items-center justify-center p-8">
+          <GoalInput />
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header />
 
-      <main style={{ padding: '16px' }}>
-        <ProgressBar schedule={activeSchedule} />
-        {activeSchedule.tasks.length === 0 ? (
-          <div
-            data-testid="empty-schedule"
-            style={{ padding: '32px', textAlign: 'center', color: '#6b7280' }}
+          <main style={{ padding: '16px' }}>
+            <ProgressBar schedule={activeSchedule} />
+            {activeSchedule.tasks.length === 0 ? (
+              <div
+                data-testid="empty-schedule"
+                style={{ padding: '32px', textAlign: 'center', color: '#6b7280' }}
+              >
+                No tasks scheduled yet. Your schedule may still be generating — try refreshing in a moment.
+              </div>
+            ) : (
+              <CalendarGrid schedule={activeSchedule} />
+            )}
+          </main>
+
+          <TaskDetail />
+          <FeedbackModal />
+          <HistoryPanel />
+          <Toast
+            message={toastMessage}
+            onDismiss={() => { setToastMessage(null); setToastDiffs([]) }}
           >
-            No tasks scheduled yet. Your schedule may still be generating — try refreshing in a moment.
-          </div>
-        ) : (
-          <CalendarGrid schedule={activeSchedule} />
-        )}
-      </main>
-
-      <TaskDetail />
-      <FeedbackModal />
-      <HistoryPanel />
-      <Toast
-        message={toastMessage}
-        onDismiss={() => { setToastMessage(null); setToastDiffs([]) }}
-      >
-        <ScheduleChanges diffs={toastDiffs} />
-      </Toast>
+            <ScheduleChanges diffs={toastDiffs} />
+          </Toast>
+        </div>
+      )}
     </div>
   )
 }
