@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { GoalInput, Schedule, FeedbackEntry, Task } from '../types'
+import type { DiffEntry } from '../utils/diff'
 
 interface AppState {
   goals: GoalInput[]
@@ -13,6 +14,7 @@ interface AppState {
   isFeedbackModalOpen: boolean
   googleTokens: { access_token: string; refresh_token: string } | null
   toastMessage: string | null
+  toastDiffs: DiffEntry[]
 }
 
 interface AppActions {
@@ -30,6 +32,7 @@ interface AppActions {
   updateTaskStatus: (taskId: string, status: Task['status']) => void
   clearActiveGoal: () => void
   setToastMessage: (msg: string | null) => void
+  setToastDiffs: (diffs: DiffEntry[]) => void
 }
 
 export const useAppStore = create<AppState & AppActions>()((set) => ({
@@ -44,6 +47,7 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   isFeedbackModalOpen: false,
   googleTokens: null,
   toastMessage: null,
+  toastDiffs: [],
 
   addGoal: (goal) => set((s) => ({ goals: [...s.goals, goal] })),
 
@@ -92,4 +96,6 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   clearActiveGoal: () => set({ activeGoalId: null }),
 
   setToastMessage: (toastMessage) => set({ toastMessage }),
+
+  setToastDiffs: (toastDiffs) => set({ toastDiffs }),
 }))

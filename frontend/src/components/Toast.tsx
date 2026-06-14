@@ -1,12 +1,14 @@
 import { useEffect } from 'react'
+import type { ReactNode } from 'react'
 
 interface Props {
   message: string | null
   onDismiss: () => void
   durationMs?: number
+  children?: ReactNode
 }
 
-export function Toast({ message, onDismiss, durationMs = 6000 }: Props) {
+export function Toast({ message, onDismiss, durationMs = 6000, children }: Props) {
   useEffect(() => {
     if (!message) return
     const id = setTimeout(onDismiss, durationMs)
@@ -36,7 +38,10 @@ export function Toast({ message, onDismiss, durationMs = 6000 }: Props) {
         lineHeight: '1.5',
       }}
     >
-      <span style={{ flex: 1 }}>{message}</span>
+      <span style={{ flex: 1 }}>
+        {message}
+        {children && <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.3)' }}>{children}</div>}
+      </span>
       <button
         data-testid="toast-dismiss"
         aria-label="Dismiss notification"

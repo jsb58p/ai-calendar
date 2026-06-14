@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAppStore } from '../../store/useAppStore'
 import { submitFeedback } from '../../api/client'
 import { StarRating } from './StarRating'
+import { computeDiff } from '../../utils/diff'
 import type { FeedbackEntry } from '../../types'
 
 type Scope = 'today' | 'week' | 'all'
@@ -18,6 +19,7 @@ export function FeedbackModal() {
   const isLoading = useAppStore((s) => s.isLoading)
   const error = useAppStore((s) => s.error)
   const setToastMessage = useAppStore((s) => s.setToastMessage)
+  const setToastDiffs = useAppStore((s) => s.setToastDiffs)
 
   const [rating, setRating] = useState<number | null>(null)
   const [notes, setNotes] = useState('')
@@ -46,6 +48,7 @@ export function FeedbackModal() {
         rating,
         notes,
       })
+      const diffs = computeDiff(activeSchedule, result.adapted)
       const entry: FeedbackEntry = {
         id: crypto.randomUUID(),
         scheduleId: activeSchedule.goalId,
@@ -55,6 +58,7 @@ export function FeedbackModal() {
       }
       setSchedule(result.adapted)
       addFeedback(entry)
+      setToastDiffs(diffs)
       setFeedbackModalOpen(false)
       setToastMessage(result.changesExplained)
     } catch (err) {
