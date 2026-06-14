@@ -1,14 +1,10 @@
-import type { ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-interface Props {
+interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
-  disabled?: boolean
   loading?: boolean
-  onClick?: () => void
   children: ReactNode
-  className?: string
-  type?: 'button' | 'submit'
 }
 
 const variantClasses: Record<NonNullable<Props['variant']>, string> = {
@@ -29,17 +25,16 @@ export default function Button({
   size = 'md',
   disabled = false,
   loading = false,
-  onClick,
   children,
   className = '',
   type = 'button',
+  ...rest
 }: Props) {
   const isDisabled = disabled || loading
 
   return (
     <button
       type={type}
-      onClick={onClick}
       disabled={isDisabled}
       className={[
         'inline-flex items-center gap-2',
@@ -48,6 +43,7 @@ export default function Button({
         isDisabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '',
         className,
       ].join(' ')}
+      {...rest}
     >
       {loading && (
         <span className="animate-spin-slow border-2 border-white/20 border-t-white rounded-full w-4 h-4 inline-block flex-shrink-0" />

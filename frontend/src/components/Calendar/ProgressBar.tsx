@@ -1,4 +1,5 @@
 import type { Schedule } from '../../types'
+import { Badge } from '../ui'
 
 interface Props {
   schedule: Schedule
@@ -11,23 +12,30 @@ export function ProgressBar({ schedule }: Props) {
   const percentComplete = total === 0 ? 0 : Math.round((completed / total) * 100)
 
   return (
-    <div data-testid="progress-bar-container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-        <span data-testid="progress-text">{completed} / {total} complete</span>
-        <span data-testid="progress-percent">{percentComplete}%</span>
-      </div>
+    <div
+      data-testid="progress-bar-container"
+      className="bg-bg-surface border-b border-border-default px-6 py-2 flex items-center gap-4"
+    >
+      <span data-testid="progress-text" className="text-text-muted text-xs font-mono flex-shrink-0">
+        {completed} / {total} complete
+      </span>
 
-      <div style={{ height: '8px', backgroundColor: '#e5e7eb', borderRadius: '4px', overflow: 'hidden' }}>
+      <div className="flex-1 bg-bg-muted rounded-full h-1.5 overflow-hidden">
         <div
           data-testid="progress-bar-fill"
-          style={{ height: '100%', width: `${percentComplete}%`, backgroundColor: '#22c55e', borderRadius: '4px' }}
+          className="bg-accent rounded-full h-full transition-all duration-500"
+          style={{ width: `${percentComplete}%` }}
         />
       </div>
 
+      <span data-testid="progress-percent" className="text-text-muted text-xs font-mono flex-shrink-0">
+        {percentComplete}%
+      </span>
+
       {skipped > 0 && (
-        <span data-testid="skipped-count" style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px', display: 'block' }}>
+        <Badge data-testid="skipped-count" variant="warning">
           {skipped} skipped
-        </span>
+        </Badge>
       )}
     </div>
   )

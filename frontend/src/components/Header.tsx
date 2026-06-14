@@ -1,9 +1,11 @@
 import { useAppStore } from '../store/useAppStore'
 import { getGoogleAuthUrl } from '../api/client'
+import { Button, Badge } from './ui'
 
 export function Header() {
   const activeGoalId = useAppStore((s) => s.activeGoalId)
   const goals = useAppStore((s) => s.goals)
+  const schedules = useAppStore((s) => s.schedules)
   const googleTokens = useAppStore((s) => s.googleTokens)
   const setFeedbackModalOpen = useAppStore((s) => s.setFeedbackModalOpen)
   const clearActiveGoal = useAppStore((s) => s.clearActiveGoal)
@@ -11,127 +13,98 @@ export function Header() {
   const setHistoryPanelOpen = useAppStore((s) => s.setHistoryPanelOpen)
 
   const activeGoal = goals.find((g) => g.id === activeGoalId) ?? null
+  const activeSchedule = activeGoalId ? (schedules[activeGoalId] ?? null) : null
+  const completedCount = activeSchedule ? activeSchedule.tasks.filter((t) => t.status === 'complete').length : 0
+  const totalCount = activeSchedule ? activeSchedule.tasks.length : 0
 
   return (
     <header
       data-testid="header"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '12px 20px',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-        gap: '12px',
-      }}
+      className="fixed top-0 left-0 right-0 z-40 bg-bg-surface/80 backdrop-blur-md border-b border-border-default h-14 flex items-center px-6 gap-4"
     >
-      <span
-        data-testid="app-name"
-        style={{ fontWeight: 800, fontSize: '20px', letterSpacing: '-0.5px', flexShrink: 0 }}
-      >
-        Calendr.ai
-      </span>
+      {/* Left: brand */}
+      <div className="flex items-center flex-shrink-0">
+        <span
+          data-testid="app-name"
+          className="font-mono text-text-primary font-semibold text-lg tracking-tight"
+        >
+          Calendr.ai
+        </span>
+        <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent ml-0.5 mb-1" />
+      </div>
 
-      <span
-        data-testid="goal-title"
-        style={{
-          flex: 1,
-          textAlign: 'center',
-          fontWeight: 500,
-          fontSize: '15px',
-          color: '#374151',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          maxWidth: '40%',
-          margin: '0 auto',
-          display: activeGoal ? 'block' : 'none',
-        }}
-      >
-        {activeGoal?.title ?? ''}
-      </span>
+      {/* Center: goal title + completion count */}
+      <div className="flex-1 flex justify-center items-center gap-2">
+        {activeGoal && (
+          <>
+            <span
+              data-testid="goal-title"
+              className="text-text-secondary text-sm truncate max-w-xs"
+            >
+              {activeGoal.title}
+            </span>
+            {activeSchedule && totalCount > 0 && (
+              <Badge variant="default">
+                {completedCount}/{totalCount}
+              </Badge>
+            )}
+          </>
+        )}
+      </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto', flexShrink: 0 }}>
-        {googleTokens !== null && (
-          <span
-            data-testid="google-connected-indicator"
-            style={{ fontSize: '13px', color: '#16a34a' }}
+      {/* Right: actions */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <Button
+          data-testid="history-button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setHistoryPanelOpen(!isHistoryPanelOpen)}
+        >
+          ⏱ History
+        </Button>
+
+        {activeGoal !== null && (
+          <Button
+            data-testid="give-feedback-button"
+            variant="secondary"
+            size="sm"
+            onClick={() => setFeedbackModalOpen(true)}
           >
-            📅 Google Calendar Connected
-          </span>
+            Give Feedback
+          </Button>
         )}
 
         {googleTokens === null && activeGoal !== null && (
-          <button
+          <Button
             data-testid="google-connect-button"
+            variant="ghost"
+            size="sm"
+            className="text-info"
             onClick={() => { window.location.href = getGoogleAuthUrl() }}
-            style={{
-              fontSize: '13px',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: '1px solid #3b82f6',
-              backgroundColor: 'transparent',
-              color: '#3b82f6',
-              cursor: 'pointer',
-            }}
           >
             Connect Google Calendar
-          </button>
+          </Button>
+        )}
+
+        {googleTokens !== null && (
+          <Badge data-testid="google-connected-indicator" variant="info">
+            📅 Synced
+          </Badge>
         )}
 
         {activeGoal !== null && (
-          <button
-            data-testid="history-button"
-            onClick={() => setHistoryPanelOpen(!isHistoryPanelOpen)}
-            style={{
-              fontSize: '13px',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: '1px solid #6b7280',
-              backgroundColor: isHistoryPanelOpen ? '#f3f4f6' : 'transparent',
-              color: '#374151',
-              cursor: 'pointer',
-            }}
-          >
-            History
-          </button>
-        )}
-
-        {activeGoal !== null && (
-          <button
-            data-testid="give-feedback-button"
-            onClick={() => setFeedbackModalOpen(true)}
-            style={{
-              fontSize: '13px',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: '1px solid #8b5cf6',
-              backgroundColor: 'transparent',
-              color: '#8b5cf6',
-              cursor: 'pointer',
-            }}
-          >
-            Give Feedback
-          </button>
-        )}
-
-        {activeGoal !== null && (
-          <button
+          <Button
             data-testid="change-goal-button"
+            variant="ghost"
+            size="sm"
+            className="text-text-muted"
             onClick={() => {
               clearActiveGoal()
               localStorage.removeItem('activeGoalId')
             }}
-            style={{
-              fontSize: '13px',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              border: '1px solid #d1d5db',
-              backgroundColor: 'transparent',
-              color: '#374151',
-              cursor: 'pointer',
-            }}
           >
             Change Goal
-          </button>
+          </Button>
         )}
       </div>
     </header>

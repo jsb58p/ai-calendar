@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 
-interface Props {
+interface Props extends HTMLAttributes<HTMLSpanElement> {
   variant?: 'default' | 'success' | 'warning' | 'danger' | 'info'
   children: ReactNode
 }
@@ -13,9 +13,12 @@ const variantClasses: Record<NonNullable<Props['variant']>, string> = {
   info:    'bg-info/10 text-info',
 }
 
-export default function Badge({ variant = 'default', children }: Props) {
+export default function Badge({ variant = 'default', children, ...rest }: Props) {
   return (
-    <span className={`font-mono text-xs font-medium px-2 py-0.5 rounded-sm ${variantClasses[variant]}`}>
+    <span
+      className={`font-mono text-xs font-medium px-2 py-0.5 rounded-sm ${variantClasses[variant]}`}
+      {...rest}
+    >
       {children}
     </span>
   )
