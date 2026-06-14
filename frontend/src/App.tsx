@@ -128,11 +128,11 @@ function AppContent() {
 
           <ProgressBar schedule={activeSchedule} />
 
-          <main style={{ padding: '16px' }}>
+          <main className="flex-1 flex flex-col overflow-hidden">
             {activeSchedule.tasks.length === 0 ? (
               <div
                 data-testid="empty-schedule"
-                style={{ padding: '32px', textAlign: 'center', color: '#6b7280' }}
+                className="flex-1 flex items-center justify-center p-8 text-center text-text-muted text-sm"
               >
                 No tasks scheduled yet. Your schedule may still be generating — try refreshing in a moment.
               </div>
