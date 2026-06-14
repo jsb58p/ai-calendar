@@ -61,4 +61,29 @@ describe('TaskCard', () => {
     expect(handleClick).toHaveBeenCalledOnce()
     expect(handleClick).toHaveBeenCalledWith(task)
   })
+
+  it('pressing Enter on a focused card calls onClick with the task', () => {
+    const task = makeTask()
+    const handleClick = vi.fn()
+    render(<TaskCard task={task} onClick={handleClick} />)
+    fireEvent.keyDown(screen.getByTestId('task-card'), { key: 'Enter' })
+    expect(handleClick).toHaveBeenCalledOnce()
+    expect(handleClick).toHaveBeenCalledWith(task)
+  })
+
+  it('pressing Space on a focused card calls onClick with the task', () => {
+    const task = makeTask()
+    const handleClick = vi.fn()
+    render(<TaskCard task={task} onClick={handleClick} />)
+    fireEvent.keyDown(screen.getByTestId('task-card'), { key: ' ' })
+    expect(handleClick).toHaveBeenCalledOnce()
+    expect(handleClick).toHaveBeenCalledWith(task)
+  })
+
+  it('pressing a different key does NOT call onClick', () => {
+    const handleClick = vi.fn()
+    render(<TaskCard task={makeTask()} onClick={handleClick} />)
+    fireEvent.keyDown(screen.getByTestId('task-card'), { key: 'Tab' })
+    expect(handleClick).not.toHaveBeenCalled()
+  })
 })

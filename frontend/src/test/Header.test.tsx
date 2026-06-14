@@ -90,4 +90,21 @@ describe('Header', () => {
     expect(screen.getByTestId('google-connected-indicator')).toBeInTheDocument()
     expect(screen.queryByTestId('google-connect-button')).not.toBeInTheDocument()
   })
+
+  it('clicking History button calls setHistoryPanelOpen(true)', () => {
+    resetStore({ goals: [MOCK_GOAL], activeGoalId: 'goal-1', isHistoryPanelOpen: false })
+    render(<Header />)
+    fireEvent.click(screen.getByTestId('history-button'))
+    expect(useAppStore.getState().isHistoryPanelOpen).toBe(true)
+  })
+
+  it('Connect Google Calendar button sets window.location.href to the auth URL', () => {
+    const origDescriptor = Object.getOwnPropertyDescriptor(window, 'location')
+    Object.defineProperty(window, 'location', { writable: true, configurable: true, value: { href: '' } })
+    resetStore({ goals: [MOCK_GOAL], activeGoalId: 'goal-1', googleTokens: null })
+    render(<Header />)
+    fireEvent.click(screen.getByTestId('google-connect-button'))
+    expect(window.location.href).toBe('http://localhost:3001/api/auth/google')
+    if (origDescriptor) Object.defineProperty(window, 'location', origDescriptor)
+  })
 })

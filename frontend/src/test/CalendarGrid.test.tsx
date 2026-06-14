@@ -122,4 +122,20 @@ describe('CalendarGrid', () => {
     fireEvent.click(screen.getByTestId('day-cell-2025-06-05'))
     expect(mockSetSelectedDate).toHaveBeenCalledWith(new Date(2025, 5, 5))
   })
+
+  it('clicking prev month in January rolls back to December of the previous year', () => {
+    vi.setSystemTime(new Date(2025, 0, 15)) // January 2025
+    render(<CalendarGrid schedule={mockSchedule} />)
+    expect(screen.getByTestId('month-display')).toHaveTextContent('January 2025')
+    fireEvent.click(screen.getByTestId('prev-month-button'))
+    expect(screen.getByTestId('month-display')).toHaveTextContent('December 2024')
+  })
+
+  it('clicking next month in December rolls forward to January of the next year', () => {
+    vi.setSystemTime(new Date(2025, 11, 15)) // December 2025
+    render(<CalendarGrid schedule={mockSchedule} />)
+    expect(screen.getByTestId('month-display')).toHaveTextContent('December 2025')
+    fireEvent.click(screen.getByTestId('next-month-button'))
+    expect(screen.getByTestId('month-display')).toHaveTextContent('January 2026')
+  })
 })
