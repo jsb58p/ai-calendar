@@ -7,6 +7,7 @@ import { CalendarGrid } from './components/Calendar/CalendarGrid'
 import { TaskDetail } from './components/TaskCard/TaskDetail'
 import { ProgressBar } from './components/Calendar/ProgressBar'
 import { Header } from './components/Header'
+import { FeedbackModal } from './components/FeedbackModal/FeedbackModal'
 
 const queryClient = new QueryClient()
 
@@ -86,6 +87,7 @@ function AppContent() {
       </main>
 
       <TaskDetail />
+      <FeedbackModal />
     </div>
   )
 }
