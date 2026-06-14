@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import { initDb } from './services/db'
 import { errorHandler } from './middleware/errorHandler'
 import { goalsRouter } from './routes/goals'
 import { feedbackRouter } from './routes/feedback'
@@ -18,6 +19,12 @@ app.use('/api/auth', authRouter)
 app.use(errorHandler)
 
 const PORT = process.env['PORT'] ?? 3001
-app.listen(PORT, () => {
-  console.log(`Backend running on port ${PORT}`)
-})
+
+async function start() {
+  await initDb()
+  app.listen(PORT, () => {
+    console.log(`Backend running on port ${PORT}`)
+  })
+}
+
+start().catch(console.error)

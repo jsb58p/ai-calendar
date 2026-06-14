@@ -1,19 +1,67 @@
-import fs from 'node:fs'
+import { Low } from 'lowdb'
+import { JSONFile } from 'lowdb/node'
+import { v4 as uuidv4 } from 'uuid'
+import type { DBSchema, GoalInput, Schedule, FeedbackEntry } from '../models/types'
 import path from 'node:path'
-import type { DBSchema } from '../models/types'
 
 const DB_PATH = path.resolve('db.json')
 const defaultData: DBSchema = { goals: [], schedules: [], feedback: [] }
 
-export function readDb(): DBSchema {
-  try {
-    const raw = fs.readFileSync(DB_PATH, 'utf-8')
-    return JSON.parse(raw) as DBSchema
-  } catch {
-    return structuredClone(defaultData)
-  }
+let db: Low<DBSchema> | null = null
+
+export async function initDb(): Promise<void> {
+  const adapter = new JSONFile<DBSchema>(DB_PATH)
+  db = new Low<DBSchema>(adapter, structuredClone(defaultData))
+  await db.read()
 }
 
-export function writeDb(data: DBSchema): void {
-  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2))
+export function getDb(): Low<DBSchema> {
+  if (!db) throw new Error('Database not initialized — call initDb() before use')
+  return db
 }
+
+export async function saveGoal(goal: GoalInput): Promise<void> {
+  const database = getDb()
+  await database.read()
+  database.data.goals.push(goal)
+  await database.write()
+}
+
+export async function getGoal(id: string): Promise<GoalInput | undefined> {
+  const database = getDb()
+  await database.read()
+  return database.data.goals.find((g) => g.id === id)
+}
+
+export async function saveSchedule(schedule: Schedule): Promise<void> {
+  const database = getDb()
+  await database.read()
+  const index = database.data.schedules.findIndex((s) => s.goalId === schedule.goalId)
+  if (index !== -1) {
+    database.data.schedules.splice(index, 1, schedule)
+  } else {
+    database.data.schedules.push(schedule)
+  }
+  await database.write()
+}
+
+export async function getSchedule(goalId: string): Promise<Schedule | undefined> {
+  const database = getDb()
+  await database.read()
+  return database.data.schedules.find((s) => s.goalId === goalId)
+}
+
+export async function saveFeedback(entry: FeedbackEntry): Promise<void> {
+  const database = getDb()
+  await database.read()
+  database.data.feedback.push(entry)
+  await database.write()
+}
+
+export async function getFeedbackForSchedule(scheduleId: string): Promise<FeedbackEntry[]> {
+  const database = getDb()
+  await database.read()
+  return database.data.feedback.filter((f) => f.scheduleId === scheduleId)
+}
+
+export { uuidv4 }
