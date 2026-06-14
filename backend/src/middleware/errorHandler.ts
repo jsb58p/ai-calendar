@@ -1,15 +1,12 @@
 import type { Request, Response, NextFunction } from 'express'
 
-export interface AppError extends Error {
-  statusCode?: number
-}
-
 export function errorHandler(
-  err: AppError,
+  err: any,
   _req: Request,
   res: Response,
   _next: NextFunction
 ): void {
-  const statusCode = err.statusCode ?? 500
-  res.status(statusCode).json({ error: err.message ?? 'Internal server error' })
+  console.error(err.message)
+  const status: number = typeof err.status === 'number' ? err.status : 500
+  res.status(status).json({ error: err.message || 'Internal server error' })
 }
