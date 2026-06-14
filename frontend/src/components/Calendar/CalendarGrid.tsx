@@ -136,7 +136,7 @@ export function CalendarGrid({ schedule }: Props) {
           const isToday = isSameDayUtil(day, today)
           const isSelected = isSameDayUtil(day, selectedDate)
           const tasks = getTasksForDate(schedule.tasks, day)
-          const visibleTasks = tasks.slice(0, 3)
+          const visibleTasks = tasks.slice(0, 2)
           const extraCount = tasks.length - visibleTasks.length
 
           return (
@@ -149,7 +149,7 @@ export function CalendarGrid({ schedule }: Props) {
                 setSelectedTaskId(null)
               }}
               className={[
-                'flex flex-col p-2 min-h-[120px] cursor-pointer transition-colors duration-100',
+                'flex flex-col p-2 min-h-[100px] overflow-hidden cursor-pointer transition-colors duration-100',
                 isSelected ? 'bg-bg-elevated' : 'bg-bg-surface hover:bg-bg-muted',
                 isToday ? 'ring-1 ring-inset ring-accent' : '',
               ].join(' ')}

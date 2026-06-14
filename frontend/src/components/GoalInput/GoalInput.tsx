@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useAppStore } from '../../store/useAppStore'
 import { submitGoal } from '../../api/client'
-import { Skeleton } from '../Skeleton'
 import { Input, Textarea, Button } from '../ui'
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -67,20 +66,18 @@ export function GoalInput() {
     `${settings.minTaskDuration}–${settings.maxTaskDuration} min tasks`,
   ].join(' · ')
 
-  if (isLoading) {
-    return (
-      <div data-testid="loading-spinner" className="w-full max-w-lg mx-auto">
-        <h1 data-testid="goal-input-heading" className="text-text-primary text-3xl font-semibold mb-6">
-          What&apos;s your goal?
-        </h1>
-        <Skeleton className="h-10 w-full mb-3" />
-        <Skeleton className="h-24 w-full mb-3" />
-        <Skeleton className="h-10 w-full" />
-      </div>
-    )
-  }
-
   return (
+    <>
+      {isLoading && (
+        <div
+          data-testid="loading-spinner"
+          className="fixed inset-0 z-[200] bg-bg-base flex flex-col items-center justify-center gap-6"
+        >
+          <div className="w-16 h-16 rounded-full border-4 border-bg-muted border-t-accent animate-spin-slow" />
+          <h2 className="text-text-primary text-xl font-semibold">Generating your schedule...</h2>
+          <p className="text-text-muted text-sm font-mono">This may take a few seconds</p>
+        </div>
+      )}
     <div className="w-full max-w-lg mx-auto animate-fade-in">
       {/* Header */}
       <div className="mb-8">
@@ -117,7 +114,7 @@ export function GoalInput() {
           onChange={(e) => setTitle(e.target.value)}
           required
           maxLength={100}
-          placeholder="e.g. Learn to play guitar in 3 months"
+          placeholder="e.g. Develop an app in a week"
         />
 
         <Textarea
@@ -180,5 +177,6 @@ export function GoalInput() {
         </Button>
       </form>
     </div>
+    </>
   )
 }

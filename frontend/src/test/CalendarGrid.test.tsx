@@ -40,7 +40,7 @@ const mockSchedule: Schedule = {
     makeTask('t2', '2025-06-20'),
     makeTask('t3', '2025-06-20'),
     makeTask('t4', '2025-06-20'),
-    makeTask('t5', '2025-06-20'), // 4 on June 20 → 3 chips + "+1 more"
+    makeTask('t5', '2025-06-20'), // 4 on June 20 → 2 chips + "+2 more"
   ],
 }
 
@@ -92,8 +92,8 @@ describe('CalendarGrid', () => {
   it('more than 3 tasks on one day shows "+N more" indicator', () => {
     render(<CalendarGrid schedule={mockSchedule} />)
     const cell = screen.getByTestId('day-cell-2025-06-20')
-    expect(within(cell).getAllByTestId('task-card')).toHaveLength(3)
-    expect(within(cell).getByTestId('more-tasks-indicator')).toHaveTextContent('+1 more')
+    expect(within(cell).getAllByTestId('task-card')).toHaveLength(2)
+    expect(within(cell).getByTestId('more-tasks-indicator')).toHaveTextContent('+2 more')
   })
 
   it('clicking prev-month-button shows the previous month', () => {

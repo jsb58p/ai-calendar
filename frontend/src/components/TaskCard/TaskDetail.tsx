@@ -69,9 +69,14 @@ export function TaskDetail() {
 
   return (
     <div
-      data-testid="task-detail-panel"
-      className="fixed right-0 top-14 bottom-0 w-[420px] max-w-[calc(100vw-3rem)] bg-bg-surface border-l border-border-default flex flex-col animate-slide-in z-50 overflow-hidden"
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center"
+      onClick={() => setSelectedTaskId(null)}
     >
+      <div
+        data-testid="task-detail-panel"
+        className="bg-bg-surface border border-border-default rounded-xl shadow-elevated w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col animate-fade-in"
+        onClick={(e) => e.stopPropagation()}
+      >
       {/* Header */}
       <div className="flex items-start justify-between p-5 border-b border-border-default flex-shrink-0">
         <h2 data-testid="detail-title" className="text-text-primary font-semibold text-lg leading-snug pr-4">
@@ -184,6 +189,7 @@ export function TaskDetail() {
             {syncing ? 'Syncing…' : 'Sync to Google Calendar'}
           </Button>
         )}
+      </div>
       </div>
     </div>
   )

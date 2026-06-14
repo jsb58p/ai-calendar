@@ -19,9 +19,9 @@ const dotClasses: Record<Task['status'], string> = {
 }
 
 const titleClasses: Record<Task['status'], string> = {
-  pending:  'text-text-primary text-xs font-medium leading-tight line-clamp-2',
-  complete: 'text-text-secondary text-xs line-through leading-tight line-clamp-2',
-  skipped:  'text-text-muted text-xs line-through leading-tight line-clamp-2',
+  pending:  'text-text-primary text-xs font-medium leading-tight truncate',
+  complete: 'text-text-secondary text-xs line-through leading-tight truncate',
+  skipped:  'text-text-muted text-xs line-through leading-tight truncate',
 }
 
 export function TaskCard({ task, onClick }: Props) {
