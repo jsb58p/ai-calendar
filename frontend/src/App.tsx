@@ -12,6 +12,7 @@ import { FeedbackModal } from './components/FeedbackModal/FeedbackModal'
 import { HistoryPanel } from './components/FeedbackModal/HistoryPanel'
 import { ScheduleChanges } from './components/FeedbackModal/ScheduleChanges'
 import { Toast } from './components/Toast'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 const queryClient = new QueryClient()
 
@@ -118,7 +119,16 @@ function AppContent() {
 
       <main style={{ padding: '16px' }}>
         <ProgressBar schedule={activeSchedule} />
-        <CalendarGrid schedule={activeSchedule} />
+        {activeSchedule.tasks.length === 0 ? (
+          <div
+            data-testid="empty-schedule"
+            style={{ padding: '32px', textAlign: 'center', color: '#6b7280' }}
+          >
+            No tasks scheduled yet. Your schedule may still be generating — try refreshing in a moment.
+          </div>
+        ) : (
+          <CalendarGrid schedule={activeSchedule} />
+        )}
       </main>
 
       <TaskDetail />
@@ -136,8 +146,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContent />
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+      </QueryClientProvider>
+    </ErrorBoundary>
   )
 }

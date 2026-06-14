@@ -122,6 +122,11 @@ export function GoalInput() {
       {error !== null && (
         <div data-testid="error-banner">
           {error}
+          {/api key|authentication/i.test(error) && (
+            <div data-testid="api-key-hint">
+              Check that your ANTHROPIC_API_KEY is set correctly in backend/.env
+            </div>
+          )}
           <button data-testid="clear-error-button" aria-label="Dismiss error" onClick={clearError} type="button">
             ×
           </button>
