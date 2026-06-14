@@ -6,6 +6,7 @@ import { errorHandler } from './middleware/errorHandler'
 import { goalsRouter } from './routes/goals'
 import { feedbackRouter } from './routes/feedback'
 import { authRouter } from './routes/auth'
+import { calendarRouter } from './routes/calendar'
 
 const app = express()
 
@@ -15,6 +16,7 @@ app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'], crede
 app.use('/api/goals', goalsRouter)
 app.use('/api/feedback', feedbackRouter)
 app.use('/api/auth', authRouter)
+app.use('/api/calendar', calendarRouter)
 
 app.use(errorHandler)
 

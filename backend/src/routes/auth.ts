@@ -10,7 +10,7 @@ authRouter.get('/google', (_req: Request, res: Response) => {
   res.redirect(url)
 })
 
-// GET /api/auth/google/callback — exchange auth code for tokens
+// GET /api/auth/google/callback — exchange auth code, redirect back to frontend with tokens
 authRouter.get('/google/callback', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const code = req.query['code']
@@ -20,7 +20,8 @@ authRouter.get('/google/callback', async (req: Request, res: Response, next: Nex
     }
 
     const { access_token, refresh_token } = await exchangeCode(code)
-    res.status(200).json({ access_token, refresh_token })
+    const params = new URLSearchParams({ access_token, refresh_token })
+    res.redirect(`http://localhost:5173?${params.toString()}`)
   } catch (err) {
     next(err)
   }
