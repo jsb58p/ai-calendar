@@ -1,5 +1,6 @@
 import { useAppStore } from '../../store/useAppStore'
 import { FeedbackHistory } from './FeedbackHistory'
+import { Button } from '../ui'
 
 export function HistoryPanel() {
   const isHistoryPanelOpen = useAppStore((s) => s.isHistoryPanelOpen)
@@ -10,31 +11,24 @@ export function HistoryPanel() {
   return (
     <div
       data-testid="history-panel"
-      style={{
-        position: 'fixed',
-        right: 0,
-        top: 0,
-        height: '100vh',
-        width: '380px',
-        backgroundColor: '#fff',
-        boxShadow: '-4px 0 24px rgba(0,0,0,0.10)',
-        zIndex: 60,
-        display: 'flex',
-        flexDirection: 'column',
-      }}
+      className="fixed right-0 top-14 bottom-0 w-[360px] bg-bg-surface border-l border-border-default flex flex-col animate-slide-in z-[60] overflow-hidden"
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 20px 16px', borderBottom: '1px solid #f3f4f6' }}>
-        <h2 style={{ fontSize: '17px', fontWeight: 700, margin: 0 }}>Feedback History</h2>
-        <button
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border-default flex-shrink-0">
+        <h2 className="text-text-primary font-semibold">Feedback History</h2>
+        <Button
           data-testid="history-panel-close"
+          variant="ghost"
+          size="sm"
           aria-label="Close history panel"
           onClick={() => setHistoryPanelOpen(false)}
-          style={{ fontSize: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', lineHeight: 1, padding: '2px 6px' }}
         >
-          ×
-        </button>
+          ✕
+        </Button>
       </div>
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-4">
         <FeedbackHistory />
       </div>
     </div>

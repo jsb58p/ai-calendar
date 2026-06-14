@@ -3,19 +3,20 @@ import { format, parseISO } from 'date-fns'
 import { useAppStore } from '../../store/useAppStore'
 import { syncTaskToCalendar, updateTaskStatus as apiUpdateTaskStatus } from '../../api/client'
 import type { Task } from '../../types'
+import { Button, Badge } from '../ui'
 
-const statusBadgeClass: Record<Task['status'], string> = {
-  complete: 'bg-green-100 text-green-800',
-  pending: 'bg-yellow-100 text-yellow-800',
-  skipped: 'bg-gray-100 text-gray-600',
+const statusBadgeVariant: Record<Task['status'], 'success' | 'warning' | 'default'> = {
+  complete: 'success',
+  pending:  'warning',
+  skipped:  'default',
 }
 
 export function TaskDetail() {
-  const selectedTaskId = useAppStore((s) => s.selectedTaskId)
-  const schedules = useAppStore((s) => s.schedules)
-  const googleTokens = useAppStore((s) => s.googleTokens)
+  const selectedTaskId  = useAppStore((s) => s.selectedTaskId)
+  const schedules       = useAppStore((s) => s.schedules)
+  const googleTokens    = useAppStore((s) => s.googleTokens)
   const setSelectedTaskId = useAppStore((s) => s.setSelectedTaskId)
-  const updateTaskStatus = useAppStore((s) => s.updateTaskStatus)
+  const updateTaskStatus  = useAppStore((s) => s.updateTaskStatus)
 
   const [checkedSteps, setCheckedSteps] = useState<Set<number>>(new Set())
   const [syncing, setSyncing] = useState(false)
@@ -64,158 +65,119 @@ export function TaskDetail() {
   return (
     <div
       data-testid="task-detail-panel"
-      style={{
-        position: 'fixed',
-        right: 0,
-        top: 0,
-        height: '100vh',
-        width: '400px',
-        backgroundColor: '#fff',
-        boxShadow: '-4px 0 24px rgba(0,0,0,0.12)',
-        zIndex: 50,
-        overflowY: 'auto',
-        padding: '24px',
-      }}
+      className="fixed right-0 top-14 bottom-0 w-[420px] bg-bg-surface border-l border-border-default flex flex-col animate-slide-in z-50 overflow-hidden"
     >
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-        <h2 data-testid="detail-title" style={{ fontSize: '18px', fontWeight: 700, flex: 1, marginRight: '12px' }}>
+      <div className="flex items-start justify-between p-5 border-b border-border-default flex-shrink-0">
+        <h2 data-testid="detail-title" className="text-text-primary font-semibold text-lg leading-snug pr-4">
           {task.title}
         </h2>
-        <button
+        <Button
           data-testid="close-button"
+          variant="ghost"
+          size="sm"
           aria-label="Close task detail"
           onClick={() => setSelectedTaskId(null)}
-          style={{ fontSize: '20px', lineHeight: 1, padding: '4px 8px', cursor: 'pointer' }}
         >
-          ×
-        </button>
+          ✕
+        </Button>
       </div>
 
-      {/* Meta */}
-      <p data-testid="detail-date" style={{ fontSize: '14px', color: '#6b7280', marginBottom: '4px' }}>
-        {formattedDate}
-      </p>
-      <p data-testid="detail-time" style={{ fontSize: '14px', color: '#6b7280', marginBottom: '12px' }}>
-        Estimated: {task.estimatedMinutes} minutes
-      </p>
+      {/* Meta row */}
+      <div className="flex items-center gap-3 px-5 py-3 bg-bg-elevated border-b border-border-default">
+        <span data-testid="detail-date" className="font-mono text-xs text-text-secondary">
+          {formattedDate}
+        </span>
+        <span data-testid="detail-time" className="font-mono text-xs text-text-muted">
+          Estimated: {task.estimatedMinutes} minutes
+        </span>
+        <Badge
+          data-testid="detail-status-badge"
+          variant={statusBadgeVariant[task.status]}
+        >
+          {task.status}
+        </Badge>
+      </div>
 
-      <span
-        data-testid="detail-status-badge"
-        className={`inline-block text-xs font-semibold px-2 py-1 rounded-full ${statusBadgeClass[task.status]}`}
-        style={{ marginBottom: '20px' }}
-      >
-        {task.status}
-      </span>
-
-      {/* Step-by-step instructions */}
-      <h3
-        data-testid="step-instructions"
-        style={{ fontSize: '14px', fontWeight: 600, marginBottom: '10px', marginTop: '16px' }}
-      >
-        Step-by-Step Instructions
-      </h3>
-      <ol style={{ listStyle: 'none', padding: 0, margin: '0 0 20px 0' }}>
-        {task.stepInstructions.map((step, index) => (
-          <li
-            key={index}
-            data-testid={`step-item-${index}`}
-            style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px' }}
-          >
-            <input
-              type="checkbox"
-              checked={checkedSteps.has(index)}
-              onChange={() => toggleStep(index)}
-              style={{ marginTop: '2px', flexShrink: 0 }}
-            />
-            <span
-              style={{
-                fontSize: '13px',
-                color: '#374151',
-                textDecoration: checkedSteps.has(index) ? 'line-through' : 'none',
-              }}
+      {/* Steps section */}
+      <div className="flex-1 overflow-y-auto p-5">
+        <p
+          data-testid="step-instructions"
+          className="text-text-secondary text-xs font-mono uppercase tracking-wider mb-4"
+        >
+          Step-by-Step Instructions
+        </p>
+        <ol className="list-none p-0 m-0">
+          {task.stepInstructions.map((step, index) => (
+            <li
+              key={index}
+              data-testid={`step-item-${index}`}
+              className="flex gap-3 mb-4 items-start"
             >
-              {index + 1}. {step}
-            </span>
-          </li>
-        ))}
-      </ol>
+              <input
+                type="checkbox"
+                checked={checkedSteps.has(index)}
+                onChange={() => toggleStep(index)}
+                className="w-4 h-4 rounded-sm border border-border-default bg-bg-muted checked:bg-accent flex-shrink-0 mt-0.5 cursor-pointer"
+              />
+              <span
+                className={`text-text-primary text-sm leading-relaxed${checkedSteps.has(index) ? ' line-through text-text-muted' : ''}`}
+              >
+                {index + 1}. {step}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </div>
 
-      {/* Action buttons */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <button
+      {/* Action bar */}
+      <div className="flex-shrink-0 p-4 border-t border-border-default bg-bg-elevated flex flex-col gap-2">
+        <Button
           data-testid="mark-complete-button"
+          variant="primary"
+          className="w-full"
           disabled={task.status === 'complete'}
           onClick={() => {
             updateTaskStatus(task.id, 'complete')
             persistStatus(task.id, 'complete')
             setSelectedTaskId(null)
           }}
-          style={{
-            padding: '10px',
-            borderRadius: '6px',
-            border: 'none',
-            backgroundColor: task.status === 'complete' ? '#d1fae5' : '#22c55e',
-            color: task.status === 'complete' ? '#6b7280' : '#fff',
-            cursor: task.status === 'complete' ? 'not-allowed' : 'pointer',
-            fontWeight: 600,
-          }}
         >
           Mark Complete
-        </button>
+        </Button>
 
-        <button
-          data-testid="mark-incomplete-button"
-          disabled={task.status === 'pending'}
-          onClick={() => { updateTaskStatus(task.id, 'pending'); persistStatus(task.id, 'pending') }}
-          style={{
-            padding: '10px',
-            borderRadius: '6px',
-            border: '1px solid #d1d5db',
-            backgroundColor: task.status === 'pending' ? '#f3f4f6' : '#fff',
-            color: task.status === 'pending' ? '#9ca3af' : '#374151',
-            cursor: task.status === 'pending' ? 'not-allowed' : 'pointer',
-            fontWeight: 600,
-          }}
-        >
-          Mark Incomplete
-        </button>
-
-        <button
-          data-testid="skip-button"
-          disabled={task.status === 'skipped'}
-          onClick={() => { updateTaskStatus(task.id, 'skipped'); persistStatus(task.id, 'skipped') }}
-          style={{
-            padding: '10px',
-            borderRadius: '6px',
-            border: '1px solid #ef4444',
-            backgroundColor: 'transparent',
-            color: task.status === 'skipped' ? '#9ca3af' : '#ef4444',
-            borderColor: task.status === 'skipped' ? '#d1d5db' : '#ef4444',
-            cursor: task.status === 'skipped' ? 'not-allowed' : 'pointer',
-            fontWeight: 600,
-          }}
-        >
-          Skip Task
-        </button>
+        <div className="flex gap-2">
+          <Button
+            data-testid="mark-incomplete-button"
+            variant="secondary"
+            className="flex-1"
+            disabled={task.status === 'pending'}
+            onClick={() => { updateTaskStatus(task.id, 'pending'); persistStatus(task.id, 'pending') }}
+          >
+            Mark Incomplete
+          </Button>
+          <Button
+            data-testid="skip-button"
+            variant="danger"
+            className="flex-1"
+            disabled={task.status === 'skipped'}
+            onClick={() => { updateTaskStatus(task.id, 'skipped'); persistStatus(task.id, 'skipped') }}
+          >
+            Skip Task
+          </Button>
+        </div>
 
         {googleTokens !== null && (
-          <button
+          <Button
             data-testid="sync-calendar-button"
-            onClick={handleSync}
+            variant="ghost"
+            size="sm"
+            className="w-full text-info"
             disabled={syncing}
-            style={{
-              padding: '10px',
-              borderRadius: '6px',
-              border: '1px solid #3b82f6',
-              backgroundColor: syncing ? '#eff6ff' : 'transparent',
-              color: '#3b82f6',
-              cursor: syncing ? 'not-allowed' : 'pointer',
-              fontWeight: 600,
-            }}
+            onClick={handleSync}
           >
             {syncing ? 'Syncing…' : 'Sync to Google Calendar'}
-          </button>
+          </Button>
         )}
       </div>
     </div>

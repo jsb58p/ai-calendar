@@ -1,16 +1,16 @@
-import type { ReactNode } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 
-interface Props {
+interface Props extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode
   className?: string
-  onClick?: () => void
   hoverable?: boolean
 }
 
-export default function Card({ children, className = '', onClick, hoverable = false }: Props) {
+export default function Card({ children, className = '', onClick, hoverable = false, ...rest }: Props) {
   return (
     <div
       onClick={onClick}
+      {...rest}
       className={[
         'bg-bg-surface border border-border-default rounded-lg p-4 shadow-surface',
         hoverable ? 'hover:border-border-accent hover:shadow-accent cursor-pointer transition-all duration-150' : '',

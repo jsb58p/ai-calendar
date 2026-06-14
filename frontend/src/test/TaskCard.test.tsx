@@ -40,17 +40,17 @@ describe('TaskCard', () => {
 
   it('complete status dot has green class', () => {
     render(<TaskCard task={makeTask({ status: 'complete' })} onClick={vi.fn()} />)
-    expect(screen.getByTestId('status-dot')).toHaveClass('bg-green-500')
+    expect(screen.getByTestId('status-dot')).toHaveClass('bg-success')
   })
 
   it('pending status dot has orange/yellow class', () => {
     render(<TaskCard task={makeTask({ status: 'pending' })} onClick={vi.fn()} />)
-    expect(screen.getByTestId('status-dot')).toHaveClass('bg-yellow-400')
+    expect(screen.getByTestId('status-dot')).toHaveClass('bg-warning')
   })
 
   it('skipped status dot has gray class', () => {
     render(<TaskCard task={makeTask({ status: 'skipped' })} onClick={vi.fn()} />)
-    expect(screen.getByTestId('status-dot')).toHaveClass('bg-gray-400')
+    expect(screen.getByTestId('status-dot')).toHaveClass('bg-text-muted')
   })
 
   it('clicking the card calls onClick with the task object', () => {

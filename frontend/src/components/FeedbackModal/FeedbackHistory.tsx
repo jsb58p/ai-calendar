@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { useAppStore } from '../../store/useAppStore'
+import { Card, Button } from '../ui'
 
 const PREVIEW_LIMIT = 100
 
@@ -9,7 +10,7 @@ function renderStars(rating: number): string {
 }
 
 export function FeedbackHistory() {
-  const feedback = useAppStore((s) => s.feedback)
+  const feedback     = useAppStore((s) => s.feedback)
   const activeGoalId = useAppStore((s) => s.activeGoalId)
 
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
@@ -20,20 +21,23 @@ export function FeedbackHistory() {
 
   if (entries.length === 0) {
     return (
-      <p data-testid="no-feedback-message">
-        No feedback yet. Submit your first review to adapt your schedule.
-      </p>
+      <div
+        data-testid="no-feedback-message"
+        className="flex flex-col items-center justify-center h-full gap-3"
+      >
+        <span className="text-text-muted text-4xl">⏱</span>
+        <p className="text-text-muted text-sm text-center">
+          No feedback yet. Submit your first review to adapt your schedule.
+        </p>
+      </div>
     )
   }
 
   function toggle(id: string) {
     setExpanded((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-      } else {
-        next.add(id)
-      }
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
       return next
     })
   }
@@ -41,57 +45,64 @@ export function FeedbackHistory() {
   return (
     <div>
       {entries.map((entry, index) => {
-        const isLong = entry.notes.length > PREVIEW_LIMIT
+        const isLong     = entry.notes.length > PREVIEW_LIMIT
         const isExpanded = expanded.has(entry.id)
 
         return (
-          <div
+          <Card
             key={entry.id}
             data-testid={`feedback-entry-${index}`}
-            style={{
-              padding: '12px 0',
-              borderBottom: '1px solid #f3f4f6',
-            }}
+            hoverable={false}
+            className="mb-3"
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-              <span data-testid="entry-date" style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
+            {/* Top row */}
+            <div className="flex justify-between items-center mb-2">
+              <span data-testid="entry-date" className="font-mono text-xs text-text-muted">
                 {format(parseISO(entry.createdAt), 'EEEE, MMMM d')}
               </span>
-              <span data-testid="entry-rating" style={{ fontSize: '14px', color: '#f59e0b', letterSpacing: '1px' }}>
+              <span data-testid="entry-rating" className="font-mono text-xs text-warning">
                 {renderStars(entry.rating)}
               </span>
             </div>
 
-            <p data-testid="entry-notes-preview" style={{ fontSize: '13px', color: '#6b7280', margin: '4px 0' }}>
+            {/* Notes preview */}
+            <p data-testid="entry-notes-preview" className="text-text-secondary text-sm leading-relaxed">
               {isLong && !isExpanded ? entry.notes.slice(0, PREVIEW_LIMIT) + '...' : entry.notes}
             </p>
 
+            {/* Full notes (when expanded) */}
             {isExpanded && (
-              <p data-testid="entry-notes-full" style={{ fontSize: '13px', color: '#374151', margin: '4px 0' }}>
+              <p data-testid="entry-notes-full" className="text-text-primary text-sm leading-relaxed mt-1">
                 {entry.notes}
               </p>
             )}
 
+            {/* Show more */}
             {isLong && !isExpanded && (
-              <button
+              <Button
                 data-testid="expand-button"
+                variant="ghost"
+                size="sm"
+                className="mt-1 text-accent"
                 onClick={() => toggle(entry.id)}
-                style={{ fontSize: '12px', color: '#8b5cf6', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               >
                 Show more
-              </button>
+              </Button>
             )}
 
+            {/* Show less */}
             {isLong && isExpanded && (
-              <button
+              <Button
                 data-testid="collapse-button"
+                variant="ghost"
+                size="sm"
+                className="mt-1 text-accent"
                 onClick={() => toggle(entry.id)}
-                style={{ fontSize: '12px', color: '#8b5cf6', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               >
                 Show less
-              </button>
+              </Button>
             )}
-          </div>
+          </Card>
         )
       })}
     </div>

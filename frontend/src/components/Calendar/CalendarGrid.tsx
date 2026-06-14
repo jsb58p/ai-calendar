@@ -11,6 +11,7 @@ import {
 } from '../../utils/calendar'
 import { format, parseISO } from 'date-fns'
 import { TaskCard } from '../TaskCard/TaskCard'
+import { Button } from '../ui'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -56,41 +57,55 @@ export function CalendarGrid({ schedule }: Props) {
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-        <button
+    <div className="flex-1 flex flex-col bg-bg-base overflow-hidden">
+      {/* Navigation row */}
+      <div className="flex items-center gap-3 px-6 py-3 bg-bg-surface border-b border-border-default">
+        <Button
           data-testid="prev-month-button"
           aria-label="Previous month"
+          variant="ghost"
+          size="sm"
           onClick={prevMonth}
+          className="font-mono text-lg"
         >
-          &lt;
-        </button>
+          ‹
+        </Button>
 
-        <span data-testid="month-display" style={{ fontWeight: 600, minWidth: '140px', textAlign: 'center' }}>
+        <span
+          data-testid="month-display"
+          className="font-mono font-medium text-text-primary text-sm min-w-[140px] text-center"
+        >
           {formatDisplayDate(new Date(displayYear, displayMonth, 1))}
         </span>
 
-        <button
+        <Button
           data-testid="next-month-button"
           aria-label="Next month"
+          variant="ghost"
+          size="sm"
           onClick={nextMonth}
+          className="font-mono text-lg"
         >
-          &gt;
-        </button>
+          ›
+        </Button>
 
-        <button data-testid="today-button" onClick={goToToday} style={{ marginLeft: '8px' }}>
+        <Button
+          data-testid="today-button"
+          variant="secondary"
+          size="sm"
+          onClick={goToToday}
+        >
           Today
-        </button>
+        </Button>
       </div>
 
-      {/* Day-of-week headers */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: '4px' }}>
+      {/* Day-of-week header row */}
+      <div className="grid grid-cols-7 bg-bg-surface border-b border-border-default">
         {DAY_LABELS.map((label) => (
           <div
             key={label}
             data-testid="day-header"
-            style={{ textAlign: 'center', fontSize: '12px', fontWeight: 600, padding: '4px 0' }}
+            className="py-2 text-center text-text-muted text-xs font-mono font-medium uppercase tracking-wider"
           >
             {label}
           </div>
@@ -98,10 +113,10 @@ export function CalendarGrid({ schedule }: Props) {
       </div>
 
       {/* Calendar grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px' }}>
+      <div className="flex-1 grid grid-cols-7 grid-rows-5 bg-border-default gap-px overflow-auto">
         {/* Leading empty cells */}
         {Array.from({ length: startOffset }).map((_, i) => (
-          <div key={`empty-${i}`} />
+          <div key={`empty-${i}`} className="bg-bg-surface" />
         ))}
 
         {/* Day cells */}
@@ -122,16 +137,18 @@ export function CalendarGrid({ schedule }: Props) {
                 setSelectedDate(day)
                 setSelectedTaskId(null)
               }}
-              style={{
-                minHeight: '80px',
-                padding: '4px',
-                cursor: 'pointer',
-                borderRadius: '4px',
-                border: isSelected ? '2px solid #3b82f6' : '1px solid #e5e7eb',
-                backgroundColor: isToday ? '#eff6ff' : '#fff',
-              }}
+              className={[
+                'flex flex-col p-2 min-h-[120px] cursor-pointer transition-colors duration-100',
+                isSelected ? 'bg-bg-elevated' : 'bg-bg-surface hover:bg-bg-muted',
+                isToday ? 'ring-1 ring-inset ring-accent' : '',
+              ].join(' ')}
             >
-              <div style={{ fontSize: '13px', fontWeight: isToday ? 700 : 400, marginBottom: '2px' }}>
+              <div
+                className={[
+                  'font-mono text-xs font-medium mb-1',
+                  isToday ? 'text-accent font-bold' : 'text-text-secondary',
+                ].join(' ')}
+              >
                 {day.getDate()}
               </div>
 
@@ -139,19 +156,16 @@ export function CalendarGrid({ schedule }: Props) {
                 <div
                   key={task.id}
                   onClick={(e) => e.stopPropagation()}
-                  style={{ marginBottom: '2px' }}
+                  className="mb-1"
                 >
-                  <TaskCard
-                    task={task}
-                    onClick={(t) => setSelectedTaskId(t.id)}
-                  />
+                  <TaskCard task={task} onClick={(t) => setSelectedTaskId(t.id)} />
                 </div>
               ))}
 
               {extraCount > 0 && (
                 <div
                   data-testid="more-tasks-indicator"
-                  style={{ fontSize: '11px', color: '#6b7280' }}
+                  className="text-text-muted text-xs font-mono mt-auto"
                 >
                   +{extraCount} more
                 </div>
