@@ -4,12 +4,9 @@ import { useAppStore } from './store/useAppStore'
 import { fetchSchedule } from './api/client'
 import { GoalInput } from './components/GoalInput/GoalInput'
 import { CalendarGrid } from './components/Calendar/CalendarGrid'
+import { TaskDetail } from './components/TaskCard/TaskDetail'
 
 const queryClient = new QueryClient()
-
-function TaskDetail() {
-  return null
-}
 
 function AppContent() {
   const activeGoalId = useAppStore((s) => s.activeGoalId)
