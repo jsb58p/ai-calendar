@@ -10,6 +10,7 @@ import {
   getTodayString,
 } from '../../utils/calendar'
 import { format, parseISO } from 'date-fns'
+import { TaskCard } from '../TaskCard/TaskCard'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -116,7 +117,7 @@ export function CalendarGrid({ schedule }: Props) {
             <div
               key={dateKey}
               data-testid={`day-cell-${dateKey}`}
-              data-today={isToday || undefined}
+              data-today={isToday ? 'true' : undefined}
               onClick={() => {
                 setSelectedDate(day)
                 setSelectedTaskId(null)
@@ -137,24 +138,13 @@ export function CalendarGrid({ schedule }: Props) {
               {visibleTasks.map((task) => (
                 <div
                   key={task.id}
-                  data-testid="task-chip"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setSelectedTaskId(task.id)
-                  }}
-                  style={{
-                    fontSize: '11px',
-                    padding: '2px 4px',
-                    marginBottom: '2px',
-                    backgroundColor: '#dbeafe',
-                    borderRadius: '3px',
-                    cursor: 'pointer',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis',
-                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ marginBottom: '2px' }}
                 >
-                  {task.title}
+                  <TaskCard
+                    task={task}
+                    onClick={(t) => setSelectedTaskId(t.id)}
+                  />
                 </div>
               ))}
 

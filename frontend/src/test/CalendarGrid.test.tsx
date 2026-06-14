@@ -82,16 +82,17 @@ describe('CalendarGrid', () => {
     expect(screen.getByTestId('day-cell-2025-06-15')).toHaveAttribute('data-today', 'true')
   })
 
-  it('a task on a specific date appears as a chip in the correct day cell', () => {
+  it('a task on a specific date appears as a card in the correct day cell', () => {
     render(<CalendarGrid schedule={mockSchedule} />)
     const cell = screen.getByTestId('day-cell-2025-06-10')
-    expect(within(cell).getByTestId('task-chip')).toHaveTextContent('Task t1')
+    expect(within(cell).getByTestId('task-card')).toBeInTheDocument()
+    expect(within(cell).getByTestId('task-title')).toHaveTextContent('Task t1')
   })
 
   it('more than 3 tasks on one day shows "+N more" indicator', () => {
     render(<CalendarGrid schedule={mockSchedule} />)
     const cell = screen.getByTestId('day-cell-2025-06-20')
-    expect(within(cell).getAllByTestId('task-chip')).toHaveLength(3)
+    expect(within(cell).getAllByTestId('task-card')).toHaveLength(3)
     expect(within(cell).getByTestId('more-tasks-indicator')).toHaveTextContent('+1 more')
   })
 

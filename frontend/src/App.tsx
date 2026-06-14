@@ -5,6 +5,7 @@ import { fetchSchedule } from './api/client'
 import { GoalInput } from './components/GoalInput/GoalInput'
 import { CalendarGrid } from './components/Calendar/CalendarGrid'
 import { TaskDetail } from './components/TaskCard/TaskDetail'
+import { ProgressBar } from './components/Calendar/ProgressBar'
 
 const queryClient = new QueryClient()
 
@@ -14,6 +15,8 @@ function AppContent() {
   const setSchedule = useAppStore((s) => s.setSchedule)
   const setActiveGoalId = useAppStore((s) => s.setActiveGoalId)
   const clearActiveGoal = useAppStore((s) => s.clearActiveGoal)
+  const selectedTaskId = useAppStore((s) => s.selectedTaskId)
+  const setSelectedTaskId = useAppStore((s) => s.setSelectedTaskId)
 
   useEffect(() => {
     const savedId = localStorage.getItem('activeGoalId')
@@ -27,6 +30,16 @@ function AppContent() {
         localStorage.removeItem('activeGoalId')
       })
   }, [setSchedule, setActiveGoalId])
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape' && selectedTaskId !== null) {
+        setSelectedTaskId(null)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedTaskId, setSelectedTaskId])
 
   const activeSchedule = activeGoalId ? (schedules[activeGoalId] ?? null) : null
 
@@ -53,6 +66,7 @@ function AppContent() {
       </header>
 
       <main style={{ padding: '16px' }}>
+        <ProgressBar schedule={activeSchedule} />
         <CalendarGrid schedule={activeSchedule} />
       </main>
 
