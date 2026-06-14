@@ -12,6 +12,7 @@ interface AppState {
   error: string | null
   isFeedbackModalOpen: boolean
   googleTokens: { access_token: string; refresh_token: string } | null
+  toastMessage: string | null
 }
 
 interface AppActions {
@@ -28,6 +29,7 @@ interface AppActions {
   setGoogleTokens: (tokens: { access_token: string; refresh_token: string } | null) => void
   updateTaskStatus: (taskId: string, status: Task['status']) => void
   clearActiveGoal: () => void
+  setToastMessage: (msg: string | null) => void
 }
 
 export const useAppStore = create<AppState & AppActions>()((set) => ({
@@ -41,6 +43,7 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   error: null,
   isFeedbackModalOpen: false,
   googleTokens: null,
+  toastMessage: null,
 
   addGoal: (goal) => set((s) => ({ goals: [...s.goals, goal] })),
 
@@ -87,4 +90,6 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
     }),
 
   clearActiveGoal: () => set({ activeGoalId: null }),
+
+  setToastMessage: (toastMessage) => set({ toastMessage }),
 }))

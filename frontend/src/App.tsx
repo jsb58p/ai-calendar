@@ -8,6 +8,7 @@ import { TaskDetail } from './components/TaskCard/TaskDetail'
 import { ProgressBar } from './components/Calendar/ProgressBar'
 import { Header } from './components/Header'
 import { FeedbackModal } from './components/FeedbackModal/FeedbackModal'
+import { Toast } from './components/Toast'
 
 const queryClient = new QueryClient()
 
@@ -17,6 +18,8 @@ function AppContent() {
   const setSchedule = useAppStore((s) => s.setSchedule)
   const setActiveGoalId = useAppStore((s) => s.setActiveGoalId)
   const setGoogleTokens = useAppStore((s) => s.setGoogleTokens)
+  const toastMessage = useAppStore((s) => s.toastMessage)
+  const setToastMessage = useAppStore((s) => s.setToastMessage)
   const selectedTaskId = useAppStore((s) => s.selectedTaskId)
   const setSelectedTaskId = useAppStore((s) => s.setSelectedTaskId)
 
@@ -88,6 +91,7 @@ function AppContent() {
 
       <TaskDetail />
       <FeedbackModal />
+      <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
     </div>
   )
 }
