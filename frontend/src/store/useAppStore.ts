@@ -15,6 +15,7 @@ interface AppState {
   googleTokens: { access_token: string; refresh_token: string } | null
   toastMessage: string | null
   toastDiffs: DiffEntry[]
+  isHistoryPanelOpen: boolean
 }
 
 interface AppActions {
@@ -33,6 +34,8 @@ interface AppActions {
   clearActiveGoal: () => void
   setToastMessage: (msg: string | null) => void
   setToastDiffs: (diffs: DiffEntry[]) => void
+  setGoals: (goals: GoalInput[]) => void
+  setHistoryPanelOpen: (v: boolean) => void
 }
 
 export const useAppStore = create<AppState & AppActions>()((set) => ({
@@ -48,6 +51,7 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   googleTokens: null,
   toastMessage: null,
   toastDiffs: [],
+  isHistoryPanelOpen: false,
 
   addGoal: (goal) => set((s) => ({ goals: [...s.goals, goal] })),
 
@@ -98,4 +102,8 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   setToastMessage: (toastMessage) => set({ toastMessage }),
 
   setToastDiffs: (toastDiffs) => set({ toastDiffs }),
+
+  setGoals: (goals) => set({ goals }),
+
+  setHistoryPanelOpen: (isHistoryPanelOpen) => set({ isHistoryPanelOpen }),
 }))

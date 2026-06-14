@@ -1,13 +1,14 @@
 import { useEffect } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAppStore } from './store/useAppStore'
-import { fetchSchedule } from './api/client'
+import { fetchSchedule, fetchGoals } from './api/client'
 import { GoalInput } from './components/GoalInput/GoalInput'
 import { CalendarGrid } from './components/Calendar/CalendarGrid'
 import { TaskDetail } from './components/TaskCard/TaskDetail'
 import { ProgressBar } from './components/Calendar/ProgressBar'
 import { Header } from './components/Header'
 import { FeedbackModal } from './components/FeedbackModal/FeedbackModal'
+import { HistoryPanel } from './components/FeedbackModal/HistoryPanel'
 import { ScheduleChanges } from './components/FeedbackModal/ScheduleChanges'
 import { Toast } from './components/Toast'
 
@@ -19,6 +20,7 @@ function AppContent() {
   const setSchedule = useAppStore((s) => s.setSchedule)
   const setActiveGoalId = useAppStore((s) => s.setActiveGoalId)
   const setGoogleTokens = useAppStore((s) => s.setGoogleTokens)
+  const setGoals = useAppStore((s) => s.setGoals)
   const toastMessage = useAppStore((s) => s.toastMessage)
   const setToastMessage = useAppStore((s) => s.setToastMessage)
   const toastDiffs = useAppStore((s) => s.toastDiffs)
@@ -49,6 +51,12 @@ function AppContent() {
       }
     }
   }, [setGoogleTokens])
+
+  useEffect(() => {
+    fetchGoals()
+      .then(({ goals }) => setGoals(goals))
+      .catch(() => { /* non-critical — goals will repopulate on next goal submit */ })
+  }, [setGoals])
 
   useEffect(() => {
     const savedId = localStorage.getItem('activeGoalId')
@@ -94,6 +102,7 @@ function AppContent() {
 
       <TaskDetail />
       <FeedbackModal />
+      <HistoryPanel />
       <Toast
         message={toastMessage}
         onDismiss={() => { setToastMessage(null); setToastDiffs([]) }}

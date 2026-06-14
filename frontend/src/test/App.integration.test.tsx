@@ -8,6 +8,8 @@ import type { Schedule, Task } from '../types'
 vi.mock('../api/client', () => ({
   fetchSchedule: vi.fn().mockResolvedValue({ goalId: 'goal-1', tasks: [] }),
   submitGoal: vi.fn(),
+  fetchGoals: vi.fn().mockResolvedValue({ goals: [] }),
+  getGoogleAuthUrl: vi.fn(() => 'http://localhost:3001/api/auth/google'),
 }))
 
 import App from '../App'

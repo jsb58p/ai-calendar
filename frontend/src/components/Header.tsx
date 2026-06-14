@@ -7,6 +7,8 @@ export function Header() {
   const googleTokens = useAppStore((s) => s.googleTokens)
   const setFeedbackModalOpen = useAppStore((s) => s.setFeedbackModalOpen)
   const clearActiveGoal = useAppStore((s) => s.clearActiveGoal)
+  const isHistoryPanelOpen = useAppStore((s) => s.isHistoryPanelOpen)
+  const setHistoryPanelOpen = useAppStore((s) => s.setHistoryPanelOpen)
 
   const activeGoal = goals.find((g) => g.id === activeGoalId) ?? null
 
@@ -72,6 +74,24 @@ export function Header() {
             }}
           >
             Connect Google Calendar
+          </button>
+        )}
+
+        {activeGoal !== null && (
+          <button
+            data-testid="history-button"
+            onClick={() => setHistoryPanelOpen(!isHistoryPanelOpen)}
+            style={{
+              fontSize: '13px',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: '1px solid #6b7280',
+              backgroundColor: isHistoryPanelOpen ? '#f3f4f6' : 'transparent',
+              color: '#374151',
+              cursor: 'pointer',
+            }}
+          >
+            History
           </button>
         )}
 
