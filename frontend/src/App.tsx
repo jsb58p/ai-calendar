@@ -3,8 +3,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAppStore } from './store/useAppStore'
 import { fetchSchedule } from './api/client'
 import { GoalInput } from './components/GoalInput/GoalInput'
+import { CalendarGrid } from './components/Calendar/CalendarGrid'
 
 const queryClient = new QueryClient()
+
+function TaskDetail() {
+  return null
+}
 
 function AppContent() {
   const activeGoalId = useAppStore((s) => s.activeGoalId)
@@ -38,15 +43,23 @@ function AppContent() {
 
   return (
     <div>
-      <div data-testid="calendar-placeholder">Calendar coming soon</div>
-      <button
-        onClick={() => {
-          clearActiveGoal()
-          localStorage.removeItem('activeGoalId')
-        }}
-      >
-        Change Goal
-      </button>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
+        <span style={{ fontWeight: 700, fontSize: '18px' }}>Calendr.ai</span>
+        <button
+          onClick={() => {
+            clearActiveGoal()
+            localStorage.removeItem('activeGoalId')
+          }}
+        >
+          Change Goal
+        </button>
+      </header>
+
+      <main style={{ padding: '16px' }}>
+        <CalendarGrid schedule={activeSchedule} />
+      </main>
+
+      <TaskDetail />
     </div>
   )
 }
