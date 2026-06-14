@@ -95,7 +95,20 @@ export function GoalInput() {
         </button>
       </form>
 
-      {isLoading && <div data-testid="loading-spinner" />}
+      {isLoading && (
+        <div
+          data-testid="loading-spinner"
+          style={{
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            border: '3px solid #e5e7eb',
+            borderTopColor: '#3b82f6',
+            animation: 'spin 0.8s linear infinite',
+            margin: '16px auto',
+          }}
+        />
+      )}
 
       {error !== null && (
         <div data-testid="error-banner">
