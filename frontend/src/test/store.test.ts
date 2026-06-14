@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import type { GoalInput, Schedule, Task, FeedbackEntry } from '../types'
+import { DEFAULT_SETTINGS } from '../types'
 import { useAppStore } from '../store/useAppStore'
 
 // ---------------------------------------------------------------------------
@@ -130,5 +131,30 @@ describe('useAppStore', () => {
     expect(useAppStore.getState().googleTokens).toEqual(tokens)
     useAppStore.getState().setGoogleTokens(null)
     expect(useAppStore.getState().googleTokens).toBeNull()
+  })
+
+  it('13: updateSettings merges a partial patch while preserving other fields', () => {
+    const initial = useAppStore.getState().settings
+    useAppStore.getState().updateSettings({ availableDays: [1, 3, 5] })
+    const { settings } = useAppStore.getState()
+    expect(settings.availableDays).toEqual([1, 3, 5])
+    expect(settings.dailyStartTime).toBe(initial.dailyStartTime)
+    expect(settings.dailyEndTime).toBe(initial.dailyEndTime)
+    expect(settings.minTaskDuration).toBe(initial.minTaskDuration)
+  })
+
+  it('14: resetSettings returns all fields to DEFAULT_SETTINGS values', () => {
+    useAppStore.getState().updateSettings({ availableDays: [1, 3, 5], dailyStartTime: '10:00' })
+    useAppStore.getState().resetSettings()
+    const { settings } = useAppStore.getState()
+    expect(settings.availableDays).toEqual(DEFAULT_SETTINGS.availableDays)
+    expect(settings.dailyStartTime).toBe(DEFAULT_SETTINGS.dailyStartTime)
+    expect(settings.difficultyRamp).toBe(DEFAULT_SETTINGS.difficultyRamp)
+  })
+
+  it('15: after updateSettings, localStorage contains the updated value', () => {
+    useAppStore.getState().updateSettings({ availableDays: [1, 3, 5] })
+    const stored = JSON.parse(localStorage.getItem('userSettings')!)
+    expect(stored.availableDays).toEqual([1, 3, 5])
   })
 })

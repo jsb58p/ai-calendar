@@ -125,7 +125,7 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
     }),
 
   resetSettings: () => {
-    localStorage.removeItem('userSettings')
     set({ settings: DEFAULT_SETTINGS })
+    localStorage.setItem('userSettings', JSON.stringify(DEFAULT_SETTINGS))
   },
 }))
