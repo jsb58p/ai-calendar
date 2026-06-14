@@ -10,7 +10,7 @@ vi.mock('lowdb/node', async () => {
   return { JSONFile: Memory }
 })
 
-const {
+import {
   initDb,
   saveGoal,
   getGoal,
@@ -18,7 +18,7 @@ const {
   getSchedule,
   saveFeedback,
   getFeedbackForSchedule,
-} = await import('../services/db')
+} from '../services/db'
 
 // ---------------------------------------------------------------------------
 // Fixtures

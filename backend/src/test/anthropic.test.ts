@@ -10,8 +10,9 @@ vi.mock('@anthropic-ai/sdk', () => ({
   },
 }))
 
-// Import AFTER vi.mock so the module receives the mocked Anthropic constructor
-const { generateSchedule, adaptSchedule } = await import('../services/anthropic')
+// vi.mock is hoisted above all imports by Vitest's transformer, so static
+// imports below already receive the mocked module — no dynamic import needed
+import { generateSchedule, adaptSchedule } from '../services/anthropic'
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -32,9 +33,8 @@ const MOCK_TASK = {
   description: 'Warm-up jog to build the habit',
   scheduledDate: '2026-06-20',
   estimatedMinutes: 30,
-  status: 'pending',
+  status: 'pending' as const,
   stepInstructions: ['Lace up shoes', 'Stretch for 5 min', 'Jog at easy pace'],
-  googleCalendarEventId: null,
 }
 
 const MOCK_SCHEDULE: Schedule = {
@@ -90,8 +90,10 @@ describe('generateSchedule', () => {
       expect(task).toHaveProperty('estimatedMinutes')
       expect(task).toHaveProperty('status')
       expect(task).toHaveProperty('stepInstructions')
-      // googleCalendarEventId is optional but must be a recognised key when present
-      expect(Object.keys(task)).toContain('googleCalendarEventId')
+      // googleCalendarEventId is optional — absent until the event is added to Google Calendar
+      expect(
+        task.googleCalendarEventId === undefined || typeof task.googleCalendarEventId === 'string'
+      ).toBe(true)
     }
   })
 

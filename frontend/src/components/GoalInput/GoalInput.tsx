@@ -1,60 +1,110 @@
 import { useState } from 'react'
-import { useCreateGoal } from '../../hooks'
-import type { Goal } from '../../types'
+import { useAppStore } from '../../store/useAppStore'
+import { submitGoal } from '../../api/client'
+
+function getTomorrowDate(): string {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  return d.toISOString().substring(0, 10)
+}
 
 export function GoalInput() {
-  const [text, setText] = useState('')
-  const [timeframe, setTimeframe] = useState('')
-  const [priority, setPriority] = useState<Goal['priority']>('medium')
-  const { mutate: createGoal, isPending } = useCreateGoal()
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [targetDate, setTargetDate] = useState('')
 
-  function handleSubmit(e: React.FormEvent) {
+  const isLoading = useAppStore((s) => s.isLoading)
+  const error = useAppStore((s) => s.error)
+  const setLoading = useAppStore((s) => s.setLoading)
+  const setError = useAppStore((s) => s.setError)
+  const clearError = useAppStore((s) => s.clearError)
+  const addGoal = useAppStore((s) => s.addGoal)
+  const setSchedule = useAppStore((s) => s.setSchedule)
+  const setActiveGoalId = useAppStore((s) => s.setActiveGoalId)
+
+  const isDisabled = isLoading || !title.trim() || !description.trim() || !targetDate
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!text.trim()) return
-    createGoal(
-      { text: text.trim(), timeframe: timeframe.trim() || undefined, priority },
-      { onSuccess: () => { setText(''); setTimeframe('') } }
-    )
+    setLoading(true)
+    try {
+      const { goal, schedule } = await submitGoal({ title, description, targetDate })
+      addGoal(goal)
+      setSchedule(schedule)
+      setActiveGoalId(goal.id)
+      localStorage.setItem('activeGoalId', goal.id)
+      setLoading(false)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong')
+      setLoading(false)
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border-b border-gray-200 space-y-2">
-      <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">New Goal</h2>
-      <input
-        type="text"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="e.g. Run a 5K in 8 weeks"
-        disabled={isPending}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={timeframe}
-          onChange={(e) => setTimeframe(e.target.value)}
-          placeholder="Timeframe (e.g. 4 weeks)"
-          disabled={isPending}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <select
-          value={priority}
-          onChange={(e) => setPriority(e.target.value as Goal['priority'])}
-          disabled={isPending}
-          className="px-2 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <div>
+      <h1 data-testid="goal-input-heading">What&apos;s your goal?</h1>
+
+      <form onSubmit={handleSubmit} noValidate>
+        <div>
+          <label htmlFor="title">Goal title</label>
+          <input
+            id="title"
+            data-testid="title-input"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            maxLength={100}
+            placeholder="e.g. Learn to play guitar in 3 months"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="description">Description</label>
+          <textarea
+            id="description"
+            data-testid="description-input"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            maxLength={500}
+            placeholder="Describe your goal in more detail..."
+            rows={4}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="targetDate">Target date</label>
+          <input
+            id="targetDate"
+            data-testid="date-input"
+            type="date"
+            value={targetDate}
+            onChange={(e) => setTargetDate(e.target.value)}
+            required
+            min={getTomorrowDate()}
+          />
+        </div>
+
+        <button
+          data-testid="submit-button"
+          type="submit"
+          disabled={isDisabled}
         >
-          <option value="low">Low</option>
-          <option value="medium">Med</option>
-          <option value="high">High</option>
-        </select>
-      </div>
-      <button
-        type="submit"
-        disabled={!text.trim() || isPending}
-        className="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-      >
-        {isPending ? 'Scheduling…' : 'Schedule with AI'}
-      </button>
-    </form>
+          Generate My Schedule →
+        </button>
+      </form>
+
+      {isLoading && <div data-testid="loading-spinner" />}
+
+      {error !== null && (
+        <div data-testid="error-banner">
+          {error}
+          <button data-testid="clear-error-button" onClick={clearError} type="button">
+            X
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

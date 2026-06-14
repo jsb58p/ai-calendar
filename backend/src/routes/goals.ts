@@ -1,45 +1,94 @@
 import { Router } from 'express'
-import type { Request, Response } from 'express'
+import type { Request, Response, NextFunction } from 'express'
 import { v4 as uuid } from 'uuid'
-import { saveGoal, getDb } from '../services/db'
-import type { GoalInput } from '../models/types'
+import {
+  saveGoal,
+  getGoal,
+  saveSchedule,
+  getSchedule,
+  saveFeedback,
+  getFeedbackForSchedule,
+  getDb,
+} from '../services/db'
+import { generateSchedule } from '../services/anthropic'
+import { createCalendarEvent } from '../services/googleCalendar'
+import type { GoalInput, Task, Schedule, FeedbackEntry, AdaptedSchedule, DBSchema } from '../models/types'
 
 export const goalsRouter = Router()
 
-goalsRouter.get('/', async (_req: Request, res: Response) => {
-  const db = getDb()
-  await db.read()
-  res.json(db.data.goals)
+// GET /api/goals
+goalsRouter.get('/', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const db = getDb()
+    await db.read()
+    res.json({ goals: db.data.goals })
+  } catch (err) {
+    next(err)
+  }
 })
 
-goalsRouter.post('/', async (req: Request, res: Response) => {
-  const body = req.body as Partial<GoalInput>
-  const { title, description, targetDate } = body
-  if (!title || !description || !targetDate) {
-    res.status(400).json({ error: 'title, description, and targetDate are required' })
-    return
+// GET /api/goals/:id/schedule
+goalsRouter.get('/:id/schedule', async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params
+    const schedule = await getSchedule(id)
+    if (schedule === undefined) {
+      res.status(404).json({ error: 'Schedule not found' })
+      return
+    }
+    res.json(schedule)
+  } catch (err) {
+    next(err)
   }
-  const goal: GoalInput = {
-    id: uuid(),
-    title,
-    description,
-    targetDate,
-    createdAt: new Date().toISOString(),
-  }
-  await saveGoal(goal)
-  res.status(201).json(goal)
 })
 
-goalsRouter.delete('/:id', async (req: Request<{ id: string }>, res: Response) => {
-  const { id } = req.params
-  const db = getDb()
-  await db.read()
-  const index = db.data.goals.findIndex((g: GoalInput) => g.id === id)
-  if (index === -1) {
-    res.status(404).json({ error: 'Goal not found' })
-    return
+// POST /api/goals
+goalsRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const body = req.body as Record<string, unknown>
+    const { title, description, targetDate } = body
+
+    if (!title || typeof title !== 'string') {
+      res.status(400).json({ error: 'title is required' })
+      return
+    }
+    if (!description || typeof description !== 'string') {
+      res.status(400).json({ error: 'description is required' })
+      return
+    }
+    if (!targetDate || typeof targetDate !== 'string') {
+      res.status(400).json({ error: 'targetDate is required' })
+      return
+    }
+
+    const target = new Date(targetDate)
+    if (isNaN(target.getTime()) || target <= new Date()) {
+      res.status(400).json({ error: 'targetDate must be a future date' })
+      return
+    }
+
+    const goal: GoalInput = {
+      id: uuid(),
+      title,
+      description,
+      targetDate,
+      createdAt: new Date().toISOString(),
+    }
+
+    await saveGoal(goal)
+
+    let schedule: Schedule
+    try {
+      schedule = await generateSchedule(goal)
+    } catch (err) {
+      next(err)
+      return
+    }
+
+    await saveSchedule(schedule)
+
+    res.status(201).json({ goal, schedule })
+  } catch (err) {
+    next(err)
   }
-  db.data.goals.splice(index, 1)
-  await db.write()
-  res.status(204).send()
 })
