@@ -4,7 +4,7 @@ import type { GoalInput, Schedule, FeedbackEntry, AdaptedSchedule } from '../mod
 const client = new Anthropic()
 
 const GENERATE_SYSTEM_PROMPT =
-  "You are a scheduling assistant. Given a goal, generate a realistic, detailed schedule broken into daily tasks. Respond ONLY with valid JSON — no markdown, no code fences, no explanation. The JSON must match this exact schema: { goalId: string, tasks: [{ id: string, goalId: string, title: string, description: string, scheduledDate: string (ISO 8601 date only, e.g. 2025-06-15), estimatedMinutes: number, status: 'pending', stepInstructions: string[] (3-7 detailed steps for completing this task), googleCalendarEventId: null }] } Do not wrap the JSON in markdown code fences or any other formatting. Return only the raw JSON object."
+  "You are a scheduling assistant. Given a goal, generate a realistic, detailed schedule broken into daily tasks. Respond ONLY with valid JSON — no markdown, no code fences, no explanation. The JSON must match this exact schema: { goalId: string, tasks: [{ id: string, goalId: string, title: string, description: string, scheduledDate: string (ISO 8601 date only, e.g. 2025-06-15), estimatedMinutes: number, status: 'pending', stepInstructions: string[] (exactly 3 steps per task, each step no longer than 2 sentences), googleCalendarEventId: null }] } Generate between 8 and 12 tasks total. Do not generate more than 12 tasks. Keep stepInstructions to exactly 3 steps per task, each step no longer than 2 sentences. Do not wrap the JSON in markdown code fences or any other formatting. Return only the raw JSON object."
 
 const ADAPT_SYSTEM_PROMPT =
   "You are a scheduling assistant. The user has rated their current schedule and provided feedback. Adapt the schedule to better meet their needs. Only reschedule tasks that are still 'pending'. Do not change tasks with status 'complete' or 'skipped'. Respond ONLY with valid JSON matching this schema: { goalId: string, tasks: [...same Task schema...], changesExplained: string (1-3 sentences explaining what you changed and why) } Do not wrap the JSON in markdown code fences or any other formatting. Return only the raw JSON object."
@@ -36,7 +36,7 @@ export async function generateSchedule(goal: GoalInput): Promise<Schedule> {
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: GENERATE_SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userPrompt }],
   })
@@ -85,7 +85,7 @@ export async function adaptSchedule(
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: ADAPT_SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userPrompt }],
   })
