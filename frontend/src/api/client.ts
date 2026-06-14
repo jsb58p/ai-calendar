@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { GoalInput, Schedule } from '../types'
+import type { GoalInput, Schedule, Task } from '../types'
 
 const api = axios.create({
   baseURL: 'http://localhost:3001/api',
@@ -55,6 +55,19 @@ export async function submitFeedback(data: {
     return res.data
   } catch (err) {
     throw new Error(extractMessage(err, 'Failed to submit feedback'))
+  }
+}
+
+export async function updateTaskStatus(
+  goalId: string,
+  taskId: string,
+  status: Task['status']
+): Promise<Task> {
+  try {
+    const res = await api.patch<Task>(`/goals/${goalId}/tasks/${taskId}`, { status })
+    return res.data
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to update task status'))
   }
 }
 

@@ -4,6 +4,7 @@ import type { Schedule, Task } from '../types'
 
 vi.mock('../api/client', () => ({
   syncTaskToCalendar: vi.fn().mockResolvedValue({ eventId: 'evt-1' }),
+  updateTaskStatus: vi.fn().mockResolvedValue({}),
   submitGoal: vi.fn(),
   fetchSchedule: vi.fn(),
 }))

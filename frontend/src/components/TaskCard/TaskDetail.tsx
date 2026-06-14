@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { format, parseISO } from 'date-fns'
 import { useAppStore } from '../../store/useAppStore'
-import { syncTaskToCalendar } from '../../api/client'
+import { syncTaskToCalendar, updateTaskStatus as apiUpdateTaskStatus } from '../../api/client'
 import type { Task } from '../../types'
 
 const statusBadgeClass: Record<Task['status'], string> = {
@@ -40,6 +40,13 @@ export function TaskDetail() {
       else next.add(index)
       return next
     })
+  }
+
+  function persistStatus(taskId: string, status: Task['status']) {
+    const goalId = Object.entries(schedules).find(([, s]) => s.tasks.some((t) => t.id === taskId))?.[0]
+    if (goalId) {
+      apiUpdateTaskStatus(goalId, taskId, status).catch(console.error)
+    }
   }
 
   async function handleSync() {
@@ -141,6 +148,7 @@ export function TaskDetail() {
           disabled={task.status === 'complete'}
           onClick={() => {
             updateTaskStatus(task.id, 'complete')
+            persistStatus(task.id, 'complete')
             setSelectedTaskId(null)
           }}
           style={{
@@ -159,7 +167,7 @@ export function TaskDetail() {
         <button
           data-testid="mark-incomplete-button"
           disabled={task.status === 'pending'}
-          onClick={() => updateTaskStatus(task.id, 'pending')}
+          onClick={() => { updateTaskStatus(task.id, 'pending'); persistStatus(task.id, 'pending') }}
           style={{
             padding: '10px',
             borderRadius: '6px',
@@ -176,7 +184,7 @@ export function TaskDetail() {
         <button
           data-testid="skip-button"
           disabled={task.status === 'skipped'}
-          onClick={() => updateTaskStatus(task.id, 'skipped')}
+          onClick={() => { updateTaskStatus(task.id, 'skipped'); persistStatus(task.id, 'skipped') }}
           style={{
             padding: '10px',
             borderRadius: '6px',
