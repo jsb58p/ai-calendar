@@ -14,6 +14,8 @@ vi.mock('../services/db', () => ({
   getSchedule: vi.fn(),
   saveFeedback: vi.fn().mockResolvedValue(undefined),
   getFeedbackForSchedule: vi.fn(),
+  saveSettings: vi.fn().mockResolvedValue(undefined),
+  getSettings: vi.fn(),
   uuidv4: vi.fn(),
 }))
 

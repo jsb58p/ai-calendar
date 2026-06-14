@@ -159,7 +159,50 @@ describe('SettingsPanel', () => {
       maxTaskDuration: 120,
       difficultyRamp:  'easy-to-hard',
       weeklyReviewDay: 0,
+      blackoutDates:   [],
     })
     expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('blackout date input renders', () => {
+    render(<SettingsPanel isOpen={true} onClose={noop} />)
+    expect(screen.getByTestId('blackout-date-input')).toBeInTheDocument()
+  })
+
+  it('clicking Add with a valid future date adds a chip', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPanel isOpen={true} onClose={noop} />)
+    fireEvent.change(screen.getByTestId('blackout-date-input'), { target: { value: '2099-01-01' } })
+    await user.click(screen.getByTestId('add-blackout-button'))
+    expect(screen.getByText('2099-01-01')).toBeInTheDocument()
+  })
+
+  it('clicking Add with a past date does not add it', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPanel isOpen={true} onClose={noop} />)
+    fireEvent.change(screen.getByTestId('blackout-date-input'), { target: { value: '2020-01-01' } })
+    await user.click(screen.getByTestId('add-blackout-button'))
+    expect(screen.queryByText('2020-01-01')).not.toBeInTheDocument()
+  })
+
+  it('clicking × on a chip removes that date', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPanel isOpen={true} onClose={noop} />)
+    fireEvent.change(screen.getByTestId('blackout-date-input'), { target: { value: '2099-06-01' } })
+    await user.click(screen.getByTestId('add-blackout-button'))
+    expect(screen.getByText('2099-06-01')).toBeInTheDocument()
+    await user.click(screen.getByTestId('remove-blackout-2099-06-01'))
+    expect(screen.queryByText('2099-06-01')).not.toBeInTheDocument()
+  })
+
+  it('blackout dates are included in the updateSettings call when Save is clicked', async () => {
+    const user = userEvent.setup()
+    render(<SettingsPanel isOpen={true} onClose={noop} />)
+    fireEvent.change(screen.getByTestId('blackout-date-input'), { target: { value: '2099-12-25' } })
+    await user.click(screen.getByTestId('add-blackout-button'))
+    await user.click(screen.getByRole('button', { name: /save settings/i }))
+    expect(mockUpdateSettings).toHaveBeenCalledWith(
+      expect.objectContaining({ blackoutDates: ['2099-12-25'] })
+    )
   })
 })

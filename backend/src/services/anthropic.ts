@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
-import type { GoalInput, Schedule, FeedbackEntry, AdaptedSchedule } from '../models/types'
+import type { GoalInput, Schedule, FeedbackEntry, AdaptedSchedule, UserSettings } from '../models/types'
+import { DEFAULT_SETTINGS } from '../models/types'
 
 const client = new Anthropic()
 
@@ -9,10 +10,11 @@ const GENERATE_SYSTEM_PROMPT =
 const ADAPT_SYSTEM_PROMPT =
   "You are a scheduling assistant. The user has rated their current schedule and provided feedback. Adapt the schedule to better meet their needs. Only reschedule tasks that are still 'pending'. Do not change tasks with status 'complete' or 'skipped'. Respond ONLY with valid JSON matching this schema: { goalId: string, tasks: [...same Task schema...], changesExplained: string (1-3 sentences explaining what you changed and why) } Do not wrap the JSON in markdown code fences or any other formatting. Return only the raw JSON object."
 
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
 function stripCodeFences(text: string): string {
   let s = text.trim()
   if (s.startsWith('```')) {
-    // Remove opening fence (```json or ```) and everything up to and including the first newline
     const newline = s.indexOf('\n')
     s = newline === -1 ? '' : s.slice(newline + 1)
   }
@@ -22,7 +24,34 @@ function stripCodeFences(text: string): string {
   return s
 }
 
-export async function generateSchedule(goal: GoalInput): Promise<Schedule> {
+function buildConstraintsBlock(settings: UserSettings): string {
+  const availableDayNames = settings.availableDays.map((d) => DAY_NAMES[d]).join(', ')
+
+  const difficultyDirective =
+    settings.difficultyRamp === 'easy-to-hard'
+      ? 'Start with easier foundational tasks and progressively increase difficulty.'
+      : settings.difficultyRamp === 'hard-to-easy'
+        ? 'Begin with the most challenging tasks while energy is highest, then decrease difficulty.'
+        : 'Keep consistent difficulty throughout.'
+
+  const blackoutLine =
+    settings.blackoutDates.length > 0 ? settings.blackoutDates.join(', ') : 'None'
+
+  return (
+    `\nSCHEDULING CONSTRAINTS — These are hard requirements. Do not schedule tasks outside these constraints:\n` +
+    `- Available days: ${availableDayNames} only. Never schedule tasks on other days.\n` +
+    `- Daily window: ${settings.dailyStartTime} to ${settings.dailyEndTime} (${settings.timezone})\n` +
+    `- Task duration: minimum ${settings.minTaskDuration} minutes, maximum ${settings.maxTaskDuration} minutes per task. Set estimatedMinutes within this range.\n` +
+    `- Difficulty progression: ${difficultyDirective}\n` +
+    `- Blackout dates: ${blackoutLine} — do not schedule tasks on these dates.\n` +
+    `- Schedule a review/checkpoint task every ${DAY_NAMES[settings.weeklyReviewDay]} if possible.\n`
+  )
+}
+
+export async function generateSchedule(
+  goal: GoalInput,
+  settings: UserSettings = DEFAULT_SETTINGS
+): Promise<Schedule> {
   const today = new Date().toISOString().substring(0, 10)
 
   const userPrompt =
@@ -30,8 +59,9 @@ export async function generateSchedule(goal: GoalInput): Promise<Schedule> {
     `Goal ID: ${goal.id}\n` +
     `Title: ${goal.title}\n` +
     `Description: ${goal.description}\n` +
-    `Target Date: ${goal.targetDate}\n\n` +
-    `Spread tasks evenly from today (${today}) through the target date. ` +
+    `Target Date: ${goal.targetDate}\n` +
+    buildConstraintsBlock(settings) +
+    `\nSpread tasks evenly from today (${today}) through the target date. ` +
     `Each task must include 3-7 stepInstructions. Return JSON only.`
 
   const response = await client.messages.create({
@@ -74,14 +104,16 @@ export async function generateSchedule(goal: GoalInput): Promise<Schedule> {
 
 export async function adaptSchedule(
   schedule: Schedule,
-  feedback: FeedbackEntry
+  feedback: FeedbackEntry,
+  settings: UserSettings = DEFAULT_SETTINGS
 ): Promise<AdaptedSchedule> {
   const userPrompt =
     `Current schedule:\n${JSON.stringify(schedule, null, 2)}\n\n` +
     `User feedback:\n` +
     `Rating: ${feedback.rating}/5\n` +
-    `Notes: ${feedback.notes}\n\n` +
-    `Adapt the schedule based on this feedback. Return JSON only.`
+    `Notes: ${feedback.notes}\n` +
+    buildConstraintsBlock(settings) +
+    `\nAdapt the schedule based on this feedback. Return JSON only.`
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',

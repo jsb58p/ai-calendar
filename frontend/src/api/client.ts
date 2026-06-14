@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { GoalInput, Schedule, Task } from '../types'
+import type { GoalInput, Schedule, Task, UserSettings } from '../types'
 
 const api = axios.create({
   baseURL: 'http://localhost:3001/api',
@@ -18,6 +18,7 @@ export async function submitGoal(data: {
   title: string
   description: string
   targetDate: string
+  settings: UserSettings
 }): Promise<{ goal: GoalInput; schedule: Schedule }> {
   try {
     const res = await api.post<{ goal: GoalInput; schedule: Schedule }>('/goals', data)

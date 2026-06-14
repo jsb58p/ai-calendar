@@ -5,6 +5,7 @@ import { GoalInput } from '../components/GoalInput/GoalInput'
 import { useAppStore } from '../store/useAppStore'
 import { submitGoal } from '../api/client'
 import type { GoalInput as GoalInputType, Schedule, Task } from '../types'
+import { DEFAULT_SETTINGS } from '../types'
 
 vi.mock('../api/client', () => ({
   submitGoal: vi.fn(),
@@ -51,6 +52,7 @@ beforeEach(() => {
     selectedTaskId: null,
     isFeedbackModalOpen: false,
     googleTokens: null,
+    settings: DEFAULT_SETTINGS,
   })
   vi.mocked(submitGoal).mockResolvedValue({ goal: FAKE_GOAL, schedule: FAKE_SCHEDULE })
 })
@@ -108,6 +110,7 @@ describe('GoalInput', () => {
         title: 'Learn guitar',
         description: 'Practice daily for 30 min',
         targetDate: '2026-09-01',
+        settings: DEFAULT_SETTINGS,
       })
     })
   })

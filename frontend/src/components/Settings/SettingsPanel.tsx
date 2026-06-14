@@ -22,13 +22,15 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
   const updateSettings = useAppStore((s) => s.updateSettings)
   const resetSettings = useAppStore((s) => s.resetSettings)
 
-  const [availableDays, setAvailableDays] = useState(settings.availableDays)
-  const [startTime, setStartTime]         = useState(settings.dailyStartTime)
-  const [endTime, setEndTime]             = useState(settings.dailyEndTime)
-  const [minDuration, setMinDuration]     = useState(settings.minTaskDuration)
-  const [maxDuration, setMaxDuration]     = useState(settings.maxTaskDuration)
+  const [availableDays, setAvailableDays]   = useState(settings.availableDays)
+  const [startTime, setStartTime]           = useState(settings.dailyStartTime)
+  const [endTime, setEndTime]               = useState(settings.dailyEndTime)
+  const [minDuration, setMinDuration]       = useState(settings.minTaskDuration)
+  const [maxDuration, setMaxDuration]       = useState(settings.maxTaskDuration)
   const [difficultyRamp, setDifficultyRamp] = useState(settings.difficultyRamp)
-  const [reviewDay, setReviewDay]         = useState(settings.weeklyReviewDay)
+  const [reviewDay, setReviewDay]           = useState(settings.weeklyReviewDay)
+  const [blackoutDates, setBlackoutDates]   = useState(settings.blackoutDates)
+  const [blackoutDateInput, setBlackoutDateInput] = useState('')
 
   // Re-sync local state each time the modal opens so stale edits are discarded
   useEffect(() => {
@@ -40,6 +42,8 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
     setMaxDuration(settings.maxTaskDuration)
     setDifficultyRamp(settings.difficultyRamp)
     setReviewDay(settings.weeklyReviewDay)
+    setBlackoutDates(settings.blackoutDates)
+    setBlackoutDateInput('')
   }, [isOpen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const timeError     = endTime <= startTime ? 'End time must be after start time' : undefined
@@ -56,6 +60,19 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
     })
   }
 
+  function handleAddBlackoutDate() {
+    if (!blackoutDateInput) return
+    const today = new Date().toISOString().substring(0, 10)
+    if (blackoutDateInput <= today) return
+    if (blackoutDates.includes(blackoutDateInput)) return
+    setBlackoutDates((prev) => [...prev, blackoutDateInput].sort())
+    setBlackoutDateInput('')
+  }
+
+  function handleRemoveBlackoutDate(date: string) {
+    setBlackoutDates((prev) => prev.filter((d) => d !== date))
+  }
+
   function handleReset() {
     resetSettings()
     setAvailableDays(DEFAULT_SETTINGS.availableDays)
@@ -65,6 +82,7 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
     setMaxDuration(DEFAULT_SETTINGS.maxTaskDuration)
     setDifficultyRamp(DEFAULT_SETTINGS.difficultyRamp)
     setReviewDay(DEFAULT_SETTINGS.weeklyReviewDay)
+    setBlackoutDates(DEFAULT_SETTINGS.blackoutDates)
   }
 
   function handleSave() {
@@ -77,6 +95,7 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
       maxTaskDuration: maxDuration,
       difficultyRamp,
       weeklyReviewDay: reviewDay,
+      blackoutDates,
     })
     onClose()
   }
@@ -197,6 +216,54 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
               <option key={i} value={i}>{label}</option>
             ))}
           </select>
+        </section>
+
+        {/* Section 6: Blackout Dates */}
+        <section>
+          <p className="text-text-secondary text-sm font-medium mb-1">Blackout Dates (optional)</p>
+          <p className="text-text-muted text-xs mb-3">
+            Days you&apos;re unavailable (vacations, holidays, etc.)
+          </p>
+          <div className="flex gap-2 mb-3">
+            <input
+              type="date"
+              data-testid="blackout-date-input"
+              value={blackoutDateInput}
+              onChange={(e) => setBlackoutDateInput(e.target.value)}
+              min={new Date().toISOString().substring(0, 10)}
+              className="flex-1 bg-bg-muted border border-border-default rounded-md px-3 py-2 text-text-primary text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-150"
+            />
+            <Button
+              type="button"
+              data-testid="add-blackout-button"
+              variant="secondary"
+              size="sm"
+              onClick={handleAddBlackoutDate}
+            >
+              Add
+            </Button>
+          </div>
+          {blackoutDates.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {blackoutDates.map((date) => (
+                <span
+                  key={date}
+                  className="font-mono text-xs bg-bg-muted border border-border-default rounded-md px-2 py-1 flex items-center gap-2"
+                >
+                  <span>{date}</span>
+                  <button
+                    type="button"
+                    data-testid={`remove-blackout-${date}`}
+                    onClick={() => handleRemoveBlackoutDate(date)}
+                    className="text-text-muted hover:text-danger transition-colors leading-none"
+                    aria-label={`Remove blackout date ${date}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </section>
       </div>
 

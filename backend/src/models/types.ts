@@ -39,6 +39,7 @@ export interface DBSchema {
   goals: GoalInput[]
   schedules: Schedule[]
   feedback: FeedbackEntry[]
+  settings: Record<string, UserSettings>
 }
 
 export interface UserSettings {

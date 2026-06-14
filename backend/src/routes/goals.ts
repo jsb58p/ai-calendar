@@ -8,11 +8,13 @@ import {
   getSchedule,
   saveFeedback,
   getFeedbackForSchedule,
+  saveSettings,
   getDb,
 } from '../services/db'
 import { generateSchedule } from '../services/anthropic'
 import { createCalendarEvent } from '../services/googleCalendar'
-import type { GoalInput, Task, Schedule, FeedbackEntry, AdaptedSchedule, DBSchema } from '../models/types'
+import type { GoalInput, Task, Schedule, FeedbackEntry, AdaptedSchedule, DBSchema, UserSettings } from '../models/types'
+import { DEFAULT_SETTINGS } from '../models/types'
 
 export const goalsRouter = Router()
 
@@ -82,11 +84,27 @@ goalsRouter.patch(
   }
 )
 
+function isValidSettings(s: unknown): s is UserSettings {
+  if (typeof s !== 'object' || s === null) return false
+  const o = s as Record<string, unknown>
+  return (
+    Array.isArray(o.availableDays) &&
+    typeof o.dailyStartTime === 'string' &&
+    typeof o.dailyEndTime === 'string' &&
+    typeof o.minTaskDuration === 'number' &&
+    typeof o.maxTaskDuration === 'number' &&
+    ['flat', 'easy-to-hard', 'hard-to-easy'].includes(o.difficultyRamp as string) &&
+    typeof o.weeklyReviewDay === 'number' &&
+    Array.isArray(o.blackoutDates) &&
+    typeof o.timezone === 'string'
+  )
+}
+
 // POST /api/goals
 goalsRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const body = req.body as Record<string, unknown>
-    const { title, description, targetDate } = body
+    const { title, description, targetDate, settings: rawSettings } = body
 
     if (!title || typeof title !== 'string') {
       res.status(400).json({ error: 'title is required' })
@@ -107,6 +125,15 @@ goalsRouter.post('/', async (req: Request, res: Response, next: NextFunction) =>
       return
     }
 
+    let settings: UserSettings | undefined
+    if (rawSettings !== undefined) {
+      if (!isValidSettings(rawSettings)) {
+        res.status(400).json({ error: 'settings has an invalid shape — all required fields must be present' })
+        return
+      }
+      settings = rawSettings
+    }
+
     const goal: GoalInput = {
       id: uuid(),
       title,
@@ -116,10 +143,11 @@ goalsRouter.post('/', async (req: Request, res: Response, next: NextFunction) =>
     }
 
     await saveGoal(goal)
+    await saveSettings(goal.id, settings ?? DEFAULT_SETTINGS)
 
     let schedule: Schedule
     try {
-      schedule = await generateSchedule(goal)
+      schedule = await generateSchedule(goal, settings ?? DEFAULT_SETTINGS)
     } catch (err) {
       next(err)
       return

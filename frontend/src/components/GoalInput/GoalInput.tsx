@@ -49,7 +49,7 @@ export function GoalInput() {
     e.preventDefault()
     setLoading(true)
     try {
-      const { goal, schedule } = await submitGoal({ title, description, targetDate })
+      const { goal, schedule } = await submitGoal({ title, description, targetDate, settings })
       addGoal(goal)
       setSchedule(schedule)
       setActiveGoalId(goal.id)

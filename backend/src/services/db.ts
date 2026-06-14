@@ -1,11 +1,11 @@
 import { Low } from 'lowdb'
 import { JSONFile } from 'lowdb/node'
 import { v4 as uuidv4 } from 'uuid'
-import type { DBSchema, GoalInput, Schedule, FeedbackEntry } from '../models/types'
+import type { DBSchema, GoalInput, Schedule, FeedbackEntry, UserSettings } from '../models/types'
 import path from 'node:path'
 
 const DB_PATH = path.resolve('db.json')
-const defaultData: DBSchema = { goals: [], schedules: [], feedback: [] }
+const defaultData: DBSchema = { goals: [], schedules: [], feedback: [], settings: {} }
 
 let db: Low<DBSchema> | null = null
 
@@ -13,6 +13,11 @@ export async function initDb(): Promise<void> {
   const adapter = new JSONFile<DBSchema>(DB_PATH)
   db = new Low<DBSchema>(adapter, structuredClone(defaultData))
   await db.read()
+  // Migrate existing databases that predate the settings field
+  if (!db.data.settings) {
+    db.data.settings = {}
+    await db.write()
+  }
 }
 
 export function getDb(): Low<DBSchema> {
@@ -62,6 +67,19 @@ export async function getFeedbackForSchedule(scheduleId: string): Promise<Feedba
   const database = getDb()
   await database.read()
   return database.data.feedback.filter((f) => f.scheduleId === scheduleId)
+}
+
+export async function saveSettings(goalId: string, settings: UserSettings): Promise<void> {
+  const database = getDb()
+  await database.read()
+  database.data.settings[goalId] = settings
+  await database.write()
+}
+
+export async function getSettings(goalId: string): Promise<UserSettings | undefined> {
+  const database = getDb()
+  await database.read()
+  return database.data.settings[goalId]
 }
 
 export { uuidv4 }
