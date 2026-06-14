@@ -23,6 +23,7 @@ export function CalendarGrid({ schedule }: Props) {
   const now = new Date()
   const [displayYear, setDisplayYear] = useState(now.getFullYear())
   const [displayMonth, setDisplayMonth] = useState(now.getMonth())
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   const selectedDate = useAppStore((s) => s.selectedDate)
   const setSelectedDate = useAppStore((s) => s.setSelectedDate)
@@ -33,27 +34,33 @@ export function CalendarGrid({ schedule }: Props) {
   const startOffset = getStartDayOfWeek(days[0]!)
 
   function prevMonth() {
+    setIsTransitioning(true)
     if (displayMonth === 0) {
       setDisplayMonth(11)
       setDisplayYear((y) => y - 1)
     } else {
       setDisplayMonth((m) => m - 1)
     }
+    setTimeout(() => setIsTransitioning(false), 150)
   }
 
   function nextMonth() {
+    setIsTransitioning(true)
     if (displayMonth === 11) {
       setDisplayMonth(0)
       setDisplayYear((y) => y + 1)
     } else {
       setDisplayMonth((m) => m + 1)
     }
+    setTimeout(() => setIsTransitioning(false), 150)
   }
 
   function goToToday() {
+    setIsTransitioning(true)
     const n = new Date()
     setDisplayYear(n.getFullYear())
     setDisplayMonth(n.getMonth())
+    setTimeout(() => setIsTransitioning(false), 150)
   }
 
   return (
@@ -113,7 +120,11 @@ export function CalendarGrid({ schedule }: Props) {
       </div>
 
       {/* Calendar grid */}
-      <div className="flex-1 grid grid-cols-7 grid-rows-5 bg-border-default gap-px overflow-auto">
+      <div className={[
+        'flex-1 grid grid-cols-7 grid-rows-5 bg-border-default gap-px overflow-auto',
+        'transition-opacity duration-150',
+        isTransitioning ? 'opacity-0' : 'opacity-100',
+      ].join(' ')}>
         {/* Leading empty cells */}
         {Array.from({ length: startOffset }).map((_, i) => (
           <div key={`empty-${i}`} className="bg-bg-surface" />
@@ -156,9 +167,14 @@ export function CalendarGrid({ schedule }: Props) {
                 <div
                   key={task.id}
                   onClick={(e) => e.stopPropagation()}
-                  className="mb-1"
+                  className="mb-1 relative group/chip"
                 >
                   <TaskCard task={task} onClick={(t) => setSelectedTaskId(t.id)} />
+                  {task.description && (
+                    <div className="absolute bottom-full left-0 z-[70] w-48 bg-bg-elevated border border-border-default rounded-md px-2 py-1.5 text-text-secondary text-xs leading-snug hidden group-hover/chip:block pointer-events-none shadow-lg">
+                      {task.description.slice(0, 100)}
+                    </div>
+                  )}
                 </div>
               ))}
 

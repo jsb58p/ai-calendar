@@ -28,31 +28,15 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div
           data-testid="error-boundary"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '100vh',
-            gap: '16px',
-            padding: '32px',
-            textAlign: 'center',
-          }}
+          className="flex flex-col items-center justify-center min-h-screen gap-4 p-8 text-center bg-bg-base"
         >
-          <h1>Something went wrong</h1>
-          {this.state.errorMessage && <p style={{ color: '#6b7280' }}>{this.state.errorMessage}</p>}
+          <h1 className="text-text-primary text-xl font-semibold">Something went wrong</h1>
+          {this.state.errorMessage && (
+            <p className="text-text-muted text-sm max-w-md">{this.state.errorMessage}</p>
+          )}
           <button
             onClick={() => window.location.reload()}
-            style={{
-              padding: '10px 24px',
-              borderRadius: '6px',
-              border: 'none',
-              backgroundColor: '#3b82f6',
-              color: '#fff',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
+            className="px-6 py-2.5 rounded-md bg-accent text-white text-sm font-semibold cursor-pointer border-0 hover:opacity-90 transition-opacity"
           >
             Reload Page
           </button>

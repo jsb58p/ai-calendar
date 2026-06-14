@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import type { Task } from '../../types'
 
 interface Props {
@@ -24,6 +25,15 @@ const titleClasses: Record<Task['status'], string> = {
 }
 
 export function TaskCard({ task, onClick }: Props) {
+  const [justCompleted, setJustCompleted] = useState(false)
+
+  useEffect(() => {
+    if (task.status !== 'complete') return
+    setJustCompleted(true)
+    const id = setTimeout(() => setJustCompleted(false), 400)
+    return () => clearTimeout(id)
+  }, [task.status])
+
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
@@ -39,7 +49,7 @@ export function TaskCard({ task, onClick }: Props) {
       aria-label={`${task.title}, status: ${task.status}`}
       onClick={() => onClick(task)}
       onKeyDown={handleKeyDown}
-      className={`w-full text-left rounded-sm px-2 py-1.5 mb-1 cursor-pointer transition-all duration-100 border-l-2 group ${cardClasses[task.status]}`}
+      className={`w-full text-left rounded-sm px-2 py-1.5 mb-1 cursor-pointer transition-all duration-200 border-l-2 group ${justCompleted ? 'scale-95' : 'scale-100'} ${cardClasses[task.status]}`}
     >
       <div className="flex items-center">
         <span

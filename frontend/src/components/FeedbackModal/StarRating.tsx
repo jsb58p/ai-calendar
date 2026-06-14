@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Props {
   value: number
@@ -15,8 +15,20 @@ const LABELS: Record<number, string> = {
 
 export function StarRating({ value, onChange }: Props) {
   const [hovered, setHovered] = useState<number | null>(null)
+  const [clickedStar, setClickedStar] = useState<number | null>(null)
 
   const fillUpTo = hovered ?? value
+
+  useEffect(() => {
+    if (clickedStar === null) return
+    const id = setTimeout(() => setClickedStar(null), 300)
+    return () => clearTimeout(id)
+  }, [clickedStar])
+
+  function handleClick(n: number) {
+    onChange(n)
+    setClickedStar(n)
+  }
 
   return (
     <div role="radiogroup" aria-label="Rate your schedule effectiveness" className="flex gap-2 items-center">
@@ -30,15 +42,16 @@ export function StarRating({ value, onChange }: Props) {
             aria-label={`Rate ${n} star${n > 1 ? 's' : ''}`}
             aria-checked={value === n}
             tabIndex={value === n || (value === 0 && n === 1) ? 0 : -1}
-            onClick={() => onChange(n)}
+            onClick={() => handleClick(n)}
             onMouseEnter={() => setHovered(n)}
             onMouseLeave={() => setHovered(null)}
             className={[
               'inline-flex items-center justify-center w-8 h-8 text-2xl cursor-pointer',
               'hover:scale-110 transition-transform duration-100',
               filled ? 'star-filled text-warning' : 'star-empty text-bg-muted',
+              clickedStar === n ? 'animate-bounce' : '',
             ].join(' ')}
-            style={filled ? { filter: 'drop-shadow(0 0 6px #f59e0b)' } : undefined}
+            style={filled ? { filter: 'drop-shadow(0 0 6px var(--color-warning))' } : undefined}
           >
             ★
           </span>

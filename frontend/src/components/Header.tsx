@@ -17,12 +17,19 @@ export function Header() {
   const activeSchedule = activeGoalId ? (schedules[activeGoalId] ?? null) : null
   const completedCount = activeSchedule ? activeSchedule.tasks.filter((t) => t.status === 'complete').length : 0
   const totalCount = activeSchedule ? activeSchedule.tasks.length : 0
+  const percentComplete = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
 
   return (
     <header
       data-testid="header"
       className="fixed top-0 left-0 right-0 z-40 bg-bg-surface/80 backdrop-blur-md border-b border-border-default h-14 flex items-center px-6 gap-4"
     >
+      {activeSchedule && totalCount > 0 && (
+        <div
+          className="absolute bottom-0 left-0 h-0.5 bg-accent transition-all duration-700"
+          style={{ width: `${percentComplete}%` }}
+        />
+      )}
       {/* Left: brand */}
       <div className="flex items-center flex-shrink-0">
         <span

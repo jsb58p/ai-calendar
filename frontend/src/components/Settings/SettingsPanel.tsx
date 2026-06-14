@@ -193,7 +193,7 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
                   data-testid={testId}
                   checked={difficultyRamp === value}
                   onChange={() => setDifficultyRamp(value)}
-                  className="w-4 h-4 accent-[#6366f1] cursor-pointer"
+                  className="w-4 h-4 accent-[var(--color-accent)] cursor-pointer"
                 />
                 <span className="text-text-primary text-sm group-hover:text-text-primary/90">
                   {label}

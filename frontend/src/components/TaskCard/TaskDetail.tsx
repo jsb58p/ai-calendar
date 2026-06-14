@@ -12,19 +12,24 @@ const statusBadgeVariant: Record<Task['status'], 'success' | 'warning' | 'defaul
 }
 
 export function TaskDetail() {
-  const selectedTaskId  = useAppStore((s) => s.selectedTaskId)
-  const schedules       = useAppStore((s) => s.schedules)
-  const googleTokens    = useAppStore((s) => s.googleTokens)
+  const selectedTaskId    = useAppStore((s) => s.selectedTaskId)
+  const schedules         = useAppStore((s) => s.schedules)
+  const googleTokens      = useAppStore((s) => s.googleTokens)
   const setSelectedTaskId = useAppStore((s) => s.setSelectedTaskId)
   const updateTaskStatus  = useAppStore((s) => s.updateTaskStatus)
+  const setHistoryPanelOpen = useAppStore((s) => s.setHistoryPanelOpen)
 
   const [checkedSteps, setCheckedSteps] = useState<Set<number>>(new Set())
   const [syncing, setSyncing] = useState(false)
 
-  // Reset local step state when the selected task changes
   useEffect(() => {
     setCheckedSteps(new Set())
   }, [selectedTaskId])
+
+  // Mutual exclusion: close HistoryPanel when a task is selected
+  useEffect(() => {
+    if (selectedTaskId !== null) setHistoryPanelOpen(false)
+  }, [selectedTaskId, setHistoryPanelOpen])
 
   if (selectedTaskId === null) return null
 
@@ -65,7 +70,7 @@ export function TaskDetail() {
   return (
     <div
       data-testid="task-detail-panel"
-      className="fixed right-0 top-14 bottom-0 w-[420px] bg-bg-surface border-l border-border-default flex flex-col animate-slide-in z-50 overflow-hidden"
+      className="fixed right-0 top-14 bottom-0 w-[420px] max-w-[calc(100vw-3rem)] bg-bg-surface border-l border-border-default flex flex-col animate-slide-in z-50 overflow-hidden"
     >
       {/* Header */}
       <div className="flex items-start justify-between p-5 border-b border-border-default flex-shrink-0">
