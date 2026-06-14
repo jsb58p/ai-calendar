@@ -36,6 +36,16 @@ export function FeedbackModal() {
     }
   }, [isFeedbackModalOpen])
 
+  // Close on Escape from anywhere on the page (not just from focused children of the panel)
+  useEffect(() => {
+    if (!isFeedbackModalOpen) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFeedbackModalOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isFeedbackModalOpen, setFeedbackModalOpen])
+
   if (!isFeedbackModalOpen) return null
 
   async function handleSubmit(e: React.FormEvent) {
