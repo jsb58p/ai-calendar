@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAppStore } from '../../store/useAppStore'
 import { submitGoal } from '../../api/client'
+import { Skeleton } from '../Skeleton'
 
 function getTomorrowDate(): string {
   const d = new Date()
@@ -38,6 +39,29 @@ export function GoalInput() {
       setError(err instanceof Error ? err.message : 'Something went wrong')
       setLoading(false)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div style={{ width: '100%', maxWidth: '480px' }}>
+        <h1 data-testid="goal-input-heading">What&apos;s your goal?</h1>
+        <Skeleton className="h-10 w-full mb-3" />
+        <Skeleton className="h-24 w-full mb-3" />
+        <Skeleton className="h-10 w-48 mb-6" />
+        <div
+          data-testid="loading-spinner"
+          style={{
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            border: '3px solid #e5e7eb',
+            borderTopColor: '#3b82f6',
+            animation: 'spin 0.8s linear infinite',
+            margin: '0 auto',
+          }}
+        />
+      </div>
+    )
   }
 
   return (
@@ -94,21 +118,6 @@ export function GoalInput() {
           Generate My Schedule →
         </button>
       </form>
-
-      {isLoading && (
-        <div
-          data-testid="loading-spinner"
-          style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '50%',
-            border: '3px solid #e5e7eb',
-            borderTopColor: '#3b82f6',
-            animation: 'spin 0.8s linear infinite',
-            margin: '16px auto',
-          }}
-        />
-      )}
 
       {error !== null && (
         <div data-testid="error-banner">

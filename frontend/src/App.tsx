@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAppStore } from './store/useAppStore'
 import { fetchSchedule, fetchGoals } from './api/client'
 import { GoalInput } from './components/GoalInput/GoalInput'
 import { CalendarGrid } from './components/Calendar/CalendarGrid'
+import { CalendarSkeleton } from './components/Calendar/CalendarSkeleton'
 import { TaskDetail } from './components/TaskCard/TaskDetail'
 import { ProgressBar } from './components/Calendar/ProgressBar'
 import { Header } from './components/Header'
@@ -15,6 +16,12 @@ import { Toast } from './components/Toast'
 const queryClient = new QueryClient()
 
 function AppContent() {
+  // True only when the app first loads with a saved goal ID in localStorage.
+  // Initialized synchronously so the very first render skips the GoalInput flash.
+  const [isRehydrating, setIsRehydrating] = useState(
+    () => !!localStorage.getItem('activeGoalId')
+  )
+
   const activeGoalId = useAppStore((s) => s.activeGoalId)
   const schedules = useAppStore((s) => s.schedules)
   const setSchedule = useAppStore((s) => s.setSchedule)
@@ -60,7 +67,10 @@ function AppContent() {
 
   useEffect(() => {
     const savedId = localStorage.getItem('activeGoalId')
-    if (!savedId) return
+    if (!savedId) {
+      setIsRehydrating(false)
+      return
+    }
     fetchSchedule(savedId)
       .then((schedule) => {
         setSchedule(schedule)
@@ -68,6 +78,9 @@ function AppContent() {
       })
       .catch(() => {
         localStorage.removeItem('activeGoalId')
+      })
+      .finally(() => {
+        setIsRehydrating(false)
       })
   }, [setSchedule, setActiveGoalId])
 
@@ -82,6 +95,14 @@ function AppContent() {
   }, [selectedTaskId, setSelectedTaskId])
 
   const activeSchedule = activeGoalId ? (schedules[activeGoalId] ?? null) : null
+
+  if (isRehydrating) {
+    return (
+      <main style={{ padding: '16px' }}>
+        <CalendarSkeleton />
+      </main>
+    )
+  }
 
   if (activeSchedule === null) {
     return (
