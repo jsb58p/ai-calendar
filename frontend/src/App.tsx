@@ -13,6 +13,7 @@ import { HistoryPanel } from './components/FeedbackModal/HistoryPanel'
 import { ScheduleChanges } from './components/FeedbackModal/ScheduleChanges'
 import { Toast } from './components/Toast'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { SettingsPanel } from './components/Settings/SettingsPanel'
 
 const queryClient = new QueryClient()
 
@@ -29,12 +30,15 @@ function AppContent() {
   const setActiveGoalId = useAppStore((s) => s.setActiveGoalId)
   const setGoogleTokens = useAppStore((s) => s.setGoogleTokens)
   const setGoals = useAppStore((s) => s.setGoals)
+  const updateSettings = useAppStore((s) => s.updateSettings)
   const toastMessage = useAppStore((s) => s.toastMessage)
   const setToastMessage = useAppStore((s) => s.setToastMessage)
   const toastDiffs = useAppStore((s) => s.toastDiffs)
   const setToastDiffs = useAppStore((s) => s.setToastDiffs)
   const selectedTaskId = useAppStore((s) => s.selectedTaskId)
   const setSelectedTaskId = useAppStore((s) => s.setSelectedTaskId)
+  const isSettingsPanelOpen = useAppStore((s) => s.isSettingsPanelOpen)
+  const setSettingsPanelOpen = useAppStore((s) => s.setSettingsPanelOpen)
 
   // Restore persisted tokens and handle OAuth redirect-back with tokens in URL
   useEffect(() => {
@@ -59,6 +63,17 @@ function AppContent() {
       }
     }
   }, [setGoogleTokens])
+
+  useEffect(() => {
+    const saved = localStorage.getItem('userSettings')
+    if (saved) {
+      try {
+        updateSettings(JSON.parse(saved))
+      } catch {
+        localStorage.removeItem('userSettings')
+      }
+    }
+  }, [updateSettings])
 
   useEffect(() => {
     fetchGoals()
@@ -129,6 +144,7 @@ function AppContent() {
           <TaskDetail />
           <FeedbackModal />
           <HistoryPanel />
+          <SettingsPanel isOpen={isSettingsPanelOpen} onClose={() => setSettingsPanelOpen(false)} />
           <Toast
             message={toastMessage}
             onDismiss={() => { setToastMessage(null); setToastDiffs([]) }}

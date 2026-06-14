@@ -29,6 +29,7 @@ function resetStore(overrides?: Partial<Parameters<typeof useAppStore.setState>[
     error: null,
     isFeedbackModalOpen: false,
     googleTokens: null,
+    isSettingsPanelOpen: false,
     ...overrides,
   })
 }
@@ -96,6 +97,12 @@ describe('Header', () => {
     render(<Header />)
     fireEvent.click(screen.getByTestId('history-button'))
     expect(useAppStore.getState().isHistoryPanelOpen).toBe(true)
+  })
+
+  it('clicking settings-button calls setSettingsPanelOpen(true)', () => {
+    render(<Header />)
+    fireEvent.click(screen.getByTestId('settings-button'))
+    expect(useAppStore.getState().isSettingsPanelOpen).toBe(true)
   })
 
   it('Connect Google Calendar button sets window.location.href to the auth URL', () => {

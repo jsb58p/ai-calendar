@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import type { GoalInput, Schedule, FeedbackEntry, Task } from '../types'
+import type { GoalInput, Schedule, FeedbackEntry, Task, UserSettings } from '../types'
+import { DEFAULT_SETTINGS } from '../types'
 import type { DiffEntry } from '../utils/diff'
 
 interface AppState {
@@ -16,6 +17,8 @@ interface AppState {
   toastMessage: string | null
   toastDiffs: DiffEntry[]
   isHistoryPanelOpen: boolean
+  isSettingsPanelOpen: boolean
+  settings: UserSettings
 }
 
 interface AppActions {
@@ -36,6 +39,9 @@ interface AppActions {
   setToastDiffs: (diffs: DiffEntry[]) => void
   setGoals: (goals: GoalInput[]) => void
   setHistoryPanelOpen: (v: boolean) => void
+  setSettingsPanelOpen: (v: boolean) => void
+  updateSettings: (patch: Partial<UserSettings>) => void
+  resetSettings: () => void
 }
 
 export const useAppStore = create<AppState & AppActions>()((set) => ({
@@ -52,6 +58,8 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   toastMessage: null,
   toastDiffs: [],
   isHistoryPanelOpen: false,
+  isSettingsPanelOpen: false,
+  settings: DEFAULT_SETTINGS,
 
   addGoal: (goal) => set((s) => ({ goals: [...s.goals, goal] })),
 
@@ -106,4 +114,18 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   setGoals: (goals) => set({ goals }),
 
   setHistoryPanelOpen: (isHistoryPanelOpen) => set({ isHistoryPanelOpen }),
+
+  setSettingsPanelOpen: (isSettingsPanelOpen) => set({ isSettingsPanelOpen }),
+
+  updateSettings: (patch) =>
+    set((s) => {
+      const next = { ...s.settings, ...patch }
+      localStorage.setItem('userSettings', JSON.stringify(next))
+      return { settings: next }
+    }),
+
+  resetSettings: () => {
+    localStorage.removeItem('userSettings')
+    set({ settings: DEFAULT_SETTINGS })
+  },
 }))

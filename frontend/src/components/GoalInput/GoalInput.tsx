@@ -2,11 +2,29 @@ import { useState } from 'react'
 import { useAppStore } from '../../store/useAppStore'
 import { submitGoal } from '../../api/client'
 import { Skeleton } from '../Skeleton'
+import { Input, Textarea, Button } from '../ui'
+
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 function getTomorrowDate(): string {
   const d = new Date()
   d.setDate(d.getDate() + 1)
   return d.toISOString().substring(0, 10)
+}
+
+function formatDaysString(days: number[]): string {
+  const sorted = [...days].sort((a, b) => a - b)
+  const isConsecutive =
+    sorted.length > 1 && sorted.every((d, i) => i === 0 || d === sorted[i - 1]! + 1)
+  if (isConsecutive) {
+    return `${DAY_NAMES[sorted[0]!]}–${DAY_NAMES[sorted[sorted.length - 1]!]}`
+  }
+  return sorted.map((d) => DAY_NAMES[d]!).join('·')
+}
+
+function formatTime(t: string): string {
+  const [h, m] = t.split(':')
+  return `${parseInt(h!, 10)}:${m}`
 }
 
 export function GoalInput() {
@@ -22,6 +40,8 @@ export function GoalInput() {
   const addGoal = useAppStore((s) => s.addGoal)
   const setSchedule = useAppStore((s) => s.setSchedule)
   const setActiveGoalId = useAppStore((s) => s.setActiveGoalId)
+  const settings = useAppStore((s) => s.settings)
+  const setSettingsPanelOpen = useAppStore((s) => s.setSettingsPanelOpen)
 
   const isDisabled = isLoading || !title.trim() || !description.trim() || !targetDate
 
@@ -41,97 +61,124 @@ export function GoalInput() {
     }
   }
 
+  const settingsSummary = [
+    formatDaysString(settings.availableDays),
+    `${formatTime(settings.dailyStartTime)}–${formatTime(settings.dailyEndTime)}`,
+    `${settings.minTaskDuration}–${settings.maxTaskDuration} min tasks`,
+  ].join(' · ')
+
   if (isLoading) {
     return (
-      <div style={{ width: '100%', maxWidth: '480px' }}>
-        <h1 data-testid="goal-input-heading">What&apos;s your goal?</h1>
+      <div data-testid="loading-spinner" className="w-full max-w-lg mx-auto">
+        <h1 data-testid="goal-input-heading" className="text-text-primary text-3xl font-semibold mb-6">
+          What&apos;s your goal?
+        </h1>
         <Skeleton className="h-10 w-full mb-3" />
         <Skeleton className="h-24 w-full mb-3" />
-        <Skeleton className="h-10 w-48 mb-6" />
-        <div
-          data-testid="loading-spinner"
-          style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '50%',
-            border: '3px solid #e5e7eb',
-            borderTopColor: '#3b82f6',
-            animation: 'spin 0.8s linear infinite',
-            margin: '0 auto',
-          }}
-        />
+        <Skeleton className="h-10 w-full" />
       </div>
     )
   }
 
   return (
-    <div>
-      <h1 data-testid="goal-input-heading">What&apos;s your goal?</h1>
+    <div className="w-full max-w-lg mx-auto animate-fade-in">
+      {/* Header */}
+      <div className="mb-8">
+        <p className="text-accent font-mono text-xs font-medium tracking-widest uppercase mb-2">
+          NEW GOAL
+        </p>
+        <h1
+          data-testid="goal-input-heading"
+          className="text-text-primary text-3xl font-semibold mb-1"
+        >
+          What&apos;s your goal?
+        </h1>
+        <p className="text-text-secondary text-sm">
+          Describe it in plain language. We&apos;ll handle the rest.
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} noValidate>
-        <div>
-          <label htmlFor="title">Goal title</label>
-          <input
-            id="title"
-            data-testid="title-input"
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            maxLength={100}
-            placeholder="e.g. Learn to play guitar in 3 months"
-          />
-        </div>
+      {/* Settings preview strip */}
+      <div className="bg-bg-surface border border-border-default rounded-lg px-4 py-3 mb-6 flex items-center justify-between">
+        <span className="text-text-muted text-xs font-mono">{settingsSummary}</span>
+        <Button variant="ghost" size="sm" onClick={() => setSettingsPanelOpen(true)}>
+          Edit
+        </Button>
+      </div>
 
-        <div>
-          <label htmlFor="description">Description</label>
-          <textarea
-            id="description"
-            data-testid="description-input"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-            maxLength={500}
-            placeholder="Describe your goal in more detail..."
-            rows={4}
-          />
-        </div>
+      {/* Form */}
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+        <Input
+          label="Goal title"
+          id="title"
+          data-testid="title-input"
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          maxLength={100}
+          placeholder="e.g. Learn to play guitar in 3 months"
+        />
 
-        <div>
-          <label htmlFor="targetDate">Target date</label>
-          <input
-            id="targetDate"
-            data-testid="date-input"
-            type="date"
-            value={targetDate}
-            onChange={(e) => setTargetDate(e.target.value)}
-            required
-            min={getTomorrowDate()}
-          />
-        </div>
+        <Textarea
+          label="Describe your goal"
+          id="description"
+          data-testid="description-input"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          required
+          maxLength={500}
+          placeholder="Describe your goal in more detail..."
+          rows={4}
+        />
 
-        <button
+        <Input
+          label="Target date"
+          id="targetDate"
+          data-testid="date-input"
+          type="date"
+          value={targetDate}
+          onChange={(e) => setTargetDate(e.target.value)}
+          required
+          min={getTomorrowDate()}
+        />
+
+        {error !== null && (
+          <div
+            data-testid="error-banner"
+            className="bg-danger/10 border border-danger/30 rounded-lg px-4 py-3 text-danger text-sm flex items-start justify-between gap-3"
+          >
+            <span>
+              {error}
+              {/api key|authentication/i.test(error) && (
+                <div data-testid="api-key-hint" className="text-xs mt-1 opacity-80">
+                  Check that your ANTHROPIC_API_KEY is set correctly in backend/.env
+                </div>
+              )}
+            </span>
+            <button
+              data-testid="clear-error-button"
+              aria-label="Dismiss error"
+              onClick={clearError}
+              type="button"
+              className="flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        <Button
           data-testid="submit-button"
+          variant="primary"
+          size="lg"
           type="submit"
+          className="w-full mt-2"
           disabled={isDisabled}
         >
           Generate My Schedule →
-        </button>
+        </Button>
       </form>
-
-      {error !== null && (
-        <div data-testid="error-banner">
-          {error}
-          {/api key|authentication/i.test(error) && (
-            <div data-testid="api-key-hint">
-              Check that your ANTHROPIC_API_KEY is set correctly in backend/.env
-            </div>
-          )}
-          <button data-testid="clear-error-button" aria-label="Dismiss error" onClick={clearError} type="button">
-            ×
-          </button>
-        </div>
-      )}
     </div>
   )
 }

@@ -11,6 +11,7 @@ export function Header() {
   const clearActiveGoal = useAppStore((s) => s.clearActiveGoal)
   const isHistoryPanelOpen = useAppStore((s) => s.isHistoryPanelOpen)
   const setHistoryPanelOpen = useAppStore((s) => s.setHistoryPanelOpen)
+  const setSettingsPanelOpen = useAppStore((s) => s.setSettingsPanelOpen)
 
   const activeGoal = goals.find((g) => g.id === activeGoalId) ?? null
   const activeSchedule = activeGoalId ? (schedules[activeGoalId] ?? null) : null
@@ -54,6 +55,16 @@ export function Header() {
 
       {/* Right: actions */}
       <div className="flex items-center gap-2 flex-shrink-0">
+        <Button
+          data-testid="settings-button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setSettingsPanelOpen(true)}
+          aria-label="Settings"
+        >
+          ⚙
+        </Button>
+
         <Button
           data-testid="history-button"
           variant="ghost"

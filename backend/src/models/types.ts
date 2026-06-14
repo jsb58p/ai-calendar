@@ -40,3 +40,27 @@ export interface DBSchema {
   schedules: Schedule[]
   feedback: FeedbackEntry[]
 }
+
+export interface UserSettings {
+  availableDays: number[]
+  dailyStartTime: string
+  dailyEndTime: string
+  minTaskDuration: number
+  maxTaskDuration: number
+  difficultyRamp: 'flat' | 'easy-to-hard' | 'hard-to-easy'
+  weeklyReviewDay: number
+  blackoutDates: string[]
+  timezone: string
+}
+
+export const DEFAULT_SETTINGS: UserSettings = {
+  availableDays: [1, 2, 3, 4, 5],
+  dailyStartTime: '09:00',
+  dailyEndTime: '17:00',
+  minTaskDuration: 15,
+  maxTaskDuration: 120,
+  difficultyRamp: 'easy-to-hard',
+  weeklyReviewDay: 0,
+  blackoutDates: [],
+  timezone: 'UTC',
+}
