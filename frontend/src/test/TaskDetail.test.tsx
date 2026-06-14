@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import type { Schedule, Task } from '../types'
 
@@ -80,11 +80,26 @@ describe('TaskDetail', () => {
     expect(screen.getByTestId('detail-time')).toHaveTextContent('Estimated: 30 minutes')
   })
 
-  it('renders all step instructions with correct testids', () => {
+  it('renders all step instructions as numbered items', () => {
     render(<TaskDetail />)
     expect(screen.getByTestId('step-item-0')).toHaveTextContent('Tune guitar')
     expect(screen.getByTestId('step-item-1')).toHaveTextContent('Place fingers on frets')
     expect(screen.getByTestId('step-item-2')).toHaveTextContent('Strum slowly')
+  })
+
+  it('each step instruction has a checkbox', () => {
+    render(<TaskDetail />)
+    ;[0, 1, 2].forEach((i) => {
+      const item = screen.getByTestId(`step-item-${i}`)
+      expect(within(item).getByRole('checkbox')).toBeInTheDocument()
+    })
+  })
+
+  it('Mark Complete button is present and enabled when status is pending', () => {
+    render(<TaskDetail />)
+    const btn = screen.getByTestId('mark-complete-button')
+    expect(btn).toBeInTheDocument()
+    expect(btn).not.toBeDisabled()
   })
 
   it('close button sets selectedTaskId to null', () => {
