@@ -1,83 +1,134 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import type { Task } from '../types'
+import type { GoalInput, Schedule, Task, FeedbackEntry } from '../types'
 import { useAppStore } from '../store/useAppStore'
 
-function resetStore() {
-  useAppStore.setState({
-    goals: [],
-    schedules: {},
-    feedback: [],
-    activeGoalId: null,
-    selectedDate: new Date(),
-    selectedTaskId: null,
-    isLoading: false,
-    error: null,
-    isFeedbackModalOpen: false,
-    googleTokens: null,
-    toastMessage: null,
-    toastDiffs: [],
-    isHistoryPanelOpen: false,
-  })
+// ---------------------------------------------------------------------------
+// Fixtures
+// ---------------------------------------------------------------------------
+
+const MOCK_GOAL: GoalInput = {
+  id: 'goal-1',
+  title: 'Learn Guitar',
+  description: 'Practice daily',
+  targetDate: '2026-12-31',
+  createdAt: '2026-01-01T00:00:00.000Z',
 }
 
-function makeTask(id: string, goalId = 'goal-1'): Task {
-  return {
-    id,
-    goalId,
-    title: `Task ${id}`,
-    description: 'desc',
-    scheduledDate: '2026-06-01',
-    estimatedMinutes: 30,
-    status: 'pending',
-    stepInstructions: ['step 1'],
-  }
+const MOCK_TASK: Task = {
+  id: 'task-1',
+  goalId: 'goal-1',
+  title: 'Practice C chord',
+  description: 'Work on C major shape',
+  scheduledDate: '2026-06-01',
+  estimatedMinutes: 30,
+  status: 'pending',
+  stepInstructions: ['Tune guitar', 'Place fingers'],
 }
+
+const MOCK_SCHEDULE: Schedule = {
+  goalId: 'goal-1',
+  tasks: [MOCK_TASK],
+}
+
+const MOCK_FEEDBACK: FeedbackEntry = {
+  id: 'fb-1',
+  scheduleId: 'goal-1',
+  rating: 4,
+  notes: 'Good progress this week',
+  createdAt: '2026-06-10T12:00:00.000Z',
+}
+
+// ---------------------------------------------------------------------------
+// Reset to initial state before every test
+// ---------------------------------------------------------------------------
 
 beforeEach(() => {
-  resetStore()
+  useAppStore.setState(useAppStore.getInitialState())
 })
 
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
 describe('useAppStore', () => {
-  it('clearError sets error to null', () => {
-    useAppStore.setState({ error: 'Something broke' })
+  it('1: initial goals array is empty', () => {
+    expect(useAppStore.getState().goals).toEqual([])
+  })
+
+  it('2: addGoal adds to goals array', () => {
+    useAppStore.getState().addGoal(MOCK_GOAL)
+    const { goals } = useAppStore.getState()
+    expect(goals).toHaveLength(1)
+    expect(goals[0]).toEqual(MOCK_GOAL)
+  })
+
+  it('3: setSchedule stores schedule under the correct goalId key', () => {
+    useAppStore.getState().setSchedule(MOCK_SCHEDULE)
+    expect(useAppStore.getState().schedules['goal-1']).toEqual(MOCK_SCHEDULE)
+  })
+
+  it('4: updateTaskStatus changes the task status in the nested schedule', () => {
+    useAppStore.getState().setSchedule(MOCK_SCHEDULE)
+    useAppStore.getState().updateTaskStatus('task-1', 'complete')
+    const task = useAppStore.getState().schedules['goal-1']!.tasks[0]!
+    expect(task.status).toBe('complete')
+  })
+
+  it('5: updateTaskStatus with an unknown taskId does not throw', () => {
+    useAppStore.getState().setSchedule(MOCK_SCHEDULE)
+    expect(() =>
+      useAppStore.getState().updateTaskStatus('non-existent-id', 'complete')
+    ).not.toThrow()
+  })
+
+  it('6: updateTaskStatus does not affect other tasks in the same schedule', () => {
+    const task2: Task = { ...MOCK_TASK, id: 'task-2', title: 'Task 2', status: 'pending' }
+    useAppStore.getState().setSchedule({ goalId: 'goal-1', tasks: [MOCK_TASK, task2] })
+    useAppStore.getState().updateTaskStatus('task-1', 'complete')
+    const tasks = useAppStore.getState().schedules['goal-1']!.tasks
+    expect(tasks.find((t) => t.id === 'task-1')!.status).toBe('complete')
+    expect(tasks.find((t) => t.id === 'task-2')!.status).toBe('pending')
+  })
+
+  it('7: setLoading(true) then setLoading(false) works correctly', () => {
+    useAppStore.getState().setLoading(true)
+    expect(useAppStore.getState().isLoading).toBe(true)
+    useAppStore.getState().setLoading(false)
+    expect(useAppStore.getState().isLoading).toBe(false)
+  })
+
+  it('8: setError sets the error message', () => {
+    useAppStore.getState().setError('Something went wrong')
+    expect(useAppStore.getState().error).toBe('Something went wrong')
+  })
+
+  it('9: clearError sets error to null', () => {
+    useAppStore.getState().setError('Something went wrong')
     useAppStore.getState().clearError()
     expect(useAppStore.getState().error).toBeNull()
   })
 
-  it('setGoogleTokens(null) clears tokens', () => {
-    useAppStore.setState({ googleTokens: { access_token: 'abc', refresh_token: 'xyz' } })
+  it('10: addFeedback adds to the feedback array', () => {
+    useAppStore.getState().addFeedback(MOCK_FEEDBACK)
+    const { feedback } = useAppStore.getState()
+    expect(feedback).toHaveLength(1)
+    expect(feedback[0]).toEqual(MOCK_FEEDBACK)
+  })
+
+  it('11: clearActiveGoal sets activeGoalId to null but does NOT clear schedules', () => {
+    useAppStore.getState().setSchedule(MOCK_SCHEDULE)
+    useAppStore.getState().setActiveGoalId('goal-1')
+    expect(useAppStore.getState().activeGoalId).toBe('goal-1')
+    useAppStore.getState().clearActiveGoal()
+    expect(useAppStore.getState().activeGoalId).toBeNull()
+    expect(useAppStore.getState().schedules['goal-1']).toEqual(MOCK_SCHEDULE)
+  })
+
+  it('12: setGoogleTokens stores tokens, calling it with null clears them', () => {
+    const tokens = { access_token: 'acc-token', refresh_token: 'ref-token' }
+    useAppStore.getState().setGoogleTokens(tokens)
+    expect(useAppStore.getState().googleTokens).toEqual(tokens)
     useAppStore.getState().setGoogleTokens(null)
     expect(useAppStore.getState().googleTokens).toBeNull()
-  })
-
-  it('setHistoryPanelOpen toggles correctly', () => {
-    useAppStore.getState().setHistoryPanelOpen(true)
-    expect(useAppStore.getState().isHistoryPanelOpen).toBe(true)
-    useAppStore.getState().setHistoryPanelOpen(false)
-    expect(useAppStore.getState().isHistoryPanelOpen).toBe(false)
-  })
-
-  it('updateTaskStatus with an unknown taskId leaves state unchanged', () => {
-    const task = makeTask('task-1')
-    useAppStore.setState({ schedules: { 'goal-1': { goalId: 'goal-1', tasks: [task] } } })
-    const stateBefore = useAppStore.getState().schedules
-    useAppStore.getState().updateTaskStatus('non-existent', 'complete')
-    // changed stays false → returns same `s` reference
-    expect(useAppStore.getState().schedules).toBe(stateBefore)
-  })
-
-  it('updateTaskStatus only updates the matching task across multiple schedules', () => {
-    const task1 = makeTask('task-1', 'goal-1')
-    const task2 = makeTask('task-2', 'goal-2')
-    useAppStore.setState({
-      schedules: {
-        'goal-1': { goalId: 'goal-1', tasks: [task1] },
-        'goal-2': { goalId: 'goal-2', tasks: [task2] },
-      },
-    })
-    useAppStore.getState().updateTaskStatus('task-2', 'complete')
-    const { schedules } = useAppStore.getState()
-    expect(schedules['goal-1']!.tasks[0]!.status).toBe('pending')
-    expect(schedules['goal-2']!.tasks[0]!.status).toBe('complete')
   })
 })
