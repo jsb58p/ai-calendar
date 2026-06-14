@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { Button } from './ui'
 
 interface Props {
   message: string | null
@@ -20,46 +21,40 @@ export function Toast({ message, onDismiss, durationMs = 6000, children }: Props
   return (
     <div
       data-testid="toast"
-      style={{
-        position: 'fixed',
-        bottom: '24px',
-        right: '24px',
-        maxWidth: '420px',
-        backgroundColor: '#16a34a',
-        color: '#fff',
-        borderRadius: '8px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.18)',
-        padding: '14px 16px 14px 18px',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '12px',
-        zIndex: 300,
-        fontSize: '14px',
-        lineHeight: '1.5',
-      }}
+      className="fixed bottom-6 right-6 z-[100] w-[380px] max-w-[calc(100vw-3rem)] bg-bg-elevated border border-border-default rounded-xl shadow-elevated animate-fade-in"
     >
-      <span style={{ flex: 1 }}>
-        {message}
-        {children && <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.3)' }}>{children}</div>}
-      </span>
-      <button
-        data-testid="toast-dismiss"
-        aria-label="Dismiss notification"
-        onClick={onDismiss}
-        style={{
-          background: 'transparent',
-          border: 'none',
-          color: '#fff',
-          cursor: 'pointer',
-          fontSize: '18px',
-          lineHeight: 1,
-          padding: '0 2px',
-          flexShrink: 0,
-          opacity: 0.8,
-        }}
-      >
-        ×
-      </button>
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <span className="w-6 h-6 rounded-full bg-success/20 text-success flex items-center justify-center text-xs flex-shrink-0">
+            ✓
+          </span>
+          <p className="text-text-primary text-sm font-medium flex-1 leading-snug">
+            {message}
+          </p>
+          <Button
+            data-testid="toast-dismiss"
+            variant="ghost"
+            size="sm"
+            aria-label="Dismiss notification"
+            onClick={onDismiss}
+          >
+            ✕
+          </Button>
+        </div>
+
+        {children && (
+          <div className="border-t border-border-default mt-3 pt-3">
+            {children}
+          </div>
+        )}
+
+        <div className="h-0.5 bg-border-default rounded-full mt-3 overflow-hidden">
+          <div
+            className="h-full bg-accent rounded-full"
+            style={{ animation: `shrink ${durationMs}ms linear forwards` }}
+          />
+        </div>
+      </div>
     </div>
   )
 }

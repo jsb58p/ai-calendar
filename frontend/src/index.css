@@ -52,3 +52,8 @@ html, body, #root {
 .animate-slide-in   { animation: slideInRight 0.25s ease-out; }
 .animate-spin-slow  { animation: spin 1s linear infinite; }
 .animate-pulse-slow { animation: pulse 1.5s ease-in-out infinite; }
+
+@keyframes shrink {
+  from { width: 100%; }
+  to   { width: 0%; }
+}

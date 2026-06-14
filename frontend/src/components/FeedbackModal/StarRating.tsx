@@ -5,13 +5,21 @@ interface Props {
   onChange: (v: number) => void
 }
 
+const LABELS: Record<number, string> = {
+  1: 'Not helpful',
+  2: 'Slightly helpful',
+  3: 'Somewhat helpful',
+  4: 'Very helpful',
+  5: 'Perfect',
+}
+
 export function StarRating({ value, onChange }: Props) {
   const [hovered, setHovered] = useState<number | null>(null)
 
   const fillUpTo = hovered ?? value
 
   return (
-    <div role="radiogroup" aria-label="Rate your schedule effectiveness" style={{ display: 'flex', gap: '4px' }}>
+    <div role="radiogroup" aria-label="Rate your schedule effectiveness" className="flex gap-2 items-center">
       {[1, 2, 3, 4, 5].map((n) => {
         const filled = n <= fillUpTo
         return (
@@ -25,18 +33,23 @@ export function StarRating({ value, onChange }: Props) {
             onClick={() => onChange(n)}
             onMouseEnter={() => setHovered(n)}
             onMouseLeave={() => setHovered(null)}
-            className={filled ? 'star-filled' : 'star-empty'}
-            style={{
-              fontSize: '28px',
-              cursor: 'pointer',
-              color: filled ? '#f59e0b' : '#d1d5db',
-              lineHeight: 1,
-            }}
+            className={[
+              'inline-flex items-center justify-center w-8 h-8 text-2xl cursor-pointer',
+              'hover:scale-110 transition-transform duration-100',
+              filled ? 'star-filled text-warning' : 'star-empty text-bg-muted',
+            ].join(' ')}
+            style={filled ? { filter: 'drop-shadow(0 0 6px #f59e0b)' } : undefined}
           >
             ★
           </span>
         )
       })}
+
+      {value > 0 && (
+        <span className="text-text-muted text-xs ml-2">
+          {LABELS[value] ?? ''}
+        </span>
+      )}
     </div>
   )
 }
