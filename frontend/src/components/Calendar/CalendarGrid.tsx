@@ -149,8 +149,8 @@ export function CalendarGrid({ schedule }: Props) {
                 setSelectedTaskId(null)
               }}
               className={[
-                'flex flex-col p-2 min-h-[100px] overflow-visible cursor-pointer transition-colors duration-100',
-                isSelected ? 'bg-bg-elevated' : 'bg-bg-surface hover:bg-bg-muted',
+                'flex flex-col p-2 min-h-[100px] overflow-visible cursor-pointer transition-all duration-100',
+                isSelected ? 'bg-bg-elevated' : 'bg-bg-surface hover:bg-bg-elevated hover:ring-1 hover:ring-border-accent',
                 isToday ? 'ring-1 ring-inset ring-accent' : '',
               ].join(' ')}
             >

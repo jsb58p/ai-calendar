@@ -118,12 +118,11 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
                   type="button"
                   data-testid={`day-toggle-${i}`}
                   onClick={() => toggleDay(i)}
-                  className={[
-                    'flex-1 py-2 text-xs font-medium rounded-md border transition-colors duration-150',
+                  className={
                     active
-                      ? 'bg-accent text-white border-accent'
-                      : 'bg-bg-muted text-text-secondary border-border-default hover:border-accent/50 hover:text-text-primary',
-                  ].join(' ')}
+                      ? 'flex-1 rounded-md px-3 py-1.5 text-sm border transition-all duration-150 cursor-pointer bg-accent text-white border-accent font-medium'
+                      : 'flex-1 rounded-md px-3 py-1.5 text-sm border transition-all duration-150 cursor-pointer bg-bg-muted text-text-secondary border-border-default hover:bg-bg-elevated hover:text-text-primary hover:border-border-accent'
+                  }
                 >
                   {label}
                 </button>
