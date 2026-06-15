@@ -8,6 +8,7 @@ import {
   getUserByGoogleId,
   saveUser,
   updateUser,
+  clearVerificationToken,
   getDb,
 } from '../services/db'
 import { sendVerificationEmail } from '../services/email'
@@ -130,8 +131,8 @@ authUsersRouter.get('/verify-email', async (req: Request, res: Response, next: N
       return
     }
 
-    const user = doc as User
-    await updateUser(user.id, { emailVerified: true, verificationToken: undefined })
+    const user = doc as unknown as User
+    await clearVerificationToken(user.id)
 
     const frontendUrl = process.env['FRONTEND_URL'] ?? 'http://localhost:5173'
     res.redirect(`${frontendUrl}/verified`)

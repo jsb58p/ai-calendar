@@ -15,6 +15,7 @@ vi.mock('../services/db', () => ({
   getUserByGoogleId: vi.fn(),
   saveUser: vi.fn().mockResolvedValue(undefined),
   updateUser: vi.fn().mockResolvedValue(undefined),
+  clearVerificationToken: vi.fn().mockResolvedValue(undefined),
   getDb: vi.fn(() => ({
     collection: vi.fn(() => ({ findOne: mockFindOne })),
   })),
@@ -53,7 +54,7 @@ vi.mock('../services/googleCalendar', () => ({
 
 import { authUsersRouter } from '../routes/auth-users'
 import { errorHandler } from '../middleware/errorHandler'
-import { getUserByEmail, getUserById, updateUser } from '../services/db'
+import { getUserByEmail, getUserById, clearVerificationToken } from '../services/db'
 import { sendVerificationEmail } from '../services/email'
 import jwt from 'jsonwebtoken'
 
@@ -269,10 +270,7 @@ describe('GET /api/auth/users/verify-email', () => {
 
     expect(res.status).toBe(302)
     expect(res.headers['location']).toMatch(/\/verified$/)
-    expect(vi.mocked(updateUser)).toHaveBeenCalledWith(MOCK_USER.id, {
-      emailVerified: true,
-      verificationToken: undefined,
-    })
+    expect(vi.mocked(clearVerificationToken)).toHaveBeenCalledWith(MOCK_USER.id)
   })
 
   it('13: invalid token returns 400', async () => {

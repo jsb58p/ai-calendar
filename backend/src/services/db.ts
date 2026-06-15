@@ -116,4 +116,10 @@ export async function updateUser(id: string, patch: Partial<User>): Promise<void
   await getDb().collection('users').updateOne({ id }, { $set: patch })
 }
 
+export async function clearVerificationToken(userId: string): Promise<void> {
+  await getDb()
+    .collection('users')
+    .updateOne({ id: userId }, { $unset: { verificationToken: '' }, $set: { emailVerified: true } })
+}
+
 export { uuidv4 }
