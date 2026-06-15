@@ -1,10 +1,34 @@
 # SchedulerAI
 
-AI-powered calendar app that turns vague goals into actionable, adaptive schedules.
+**Turn any goal into an adaptive, day-by-day schedule — powered by Claude.**
 
-## What it does
+![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![Tests](https://img.shields.io/badge/tests-241%20passing-brightgreen)
+![Deployed on Vercel](https://img.shields.io/badge/deployed%20on-Vercel-black)
 
-You describe a goal and a target date, and Claude generates a day-by-day task schedule to get you there. As you work through it, you rate how the schedule is going and leave notes; Claude then reshapes the remaining tasks based on your feedback. Completed tasks can be synced to Google Calendar so your schedule lives where you already work.
+---
+
+## Live Demo
+
+**[schedulerai-frontend-eta.vercel.app](https://schedulerai-frontend-eta.vercel.app)**
+
+> The backend runs on Render's free tier and may take 30–60 seconds to wake from idle on first load.
+
+---
+
+## Features
+
+- **AI-generated schedules** — Describe a goal and a target date; Claude builds a realistic day-by-day task plan with step-by-step instructions for each session
+- **Adaptive rescheduling** — Rate your schedule and leave notes; Claude reshapes remaining tasks around your feedback without touching completed ones
+- **Scheduling constraints** — Configure available days, daily time window, task duration bounds, difficulty ramp, and blackout dates
+- **Google Calendar sync** — OAuth 2.0 flow; all tasks sync as all-day events and update in-place on re-sync
+- **Goal history** — Switch between past goals and their schedules without losing progress
+- **Progress tracking** — Per-task step-by-step completion with checkboxes; task status (complete / pending / skipped)
+- **Diff toasts** — When Claude adapts your schedule, a toast explains exactly what changed and why
+- **Dark-mode design system** — Custom semantic colour tokens, fully keyboard-accessible
+
+---
 
 ## Tech Stack
 
@@ -16,148 +40,101 @@ You describe a goal and a target date, and Claude generates a day-by-day task sc
 | State management | Zustand |
 | Backend | Node.js + Express |
 | AI | Anthropic Claude API (`claude-sonnet-4-6`) |
-| Persistence | LowDB (file-based JSON) |
+| Database | MongoDB Atlas |
 | Calendar sync | Google Calendar API (OAuth 2.0) |
 | Testing | Vitest + Playwright |
+| Frontend deploy | Vercel |
+| Backend deploy | Render |
 
-## Prerequisites
+---
 
-- Node.js v18 or higher
-- npm v9 or higher
-- An Anthropic API key ([console.anthropic.com](https://console.anthropic.com) → Settings → API Keys)
-- A Google Cloud project with Calendar API enabled and OAuth 2.0 credentials (for Google Calendar sync — optional)
-
-## Quickstart
+## Getting Started
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/<your-username>/ai-calendar.git
 cd ai-calendar
 
-# Create backend environment file
+# Install dependencies
+cd backend && npm install
+cd ../frontend && npm install
+
+# Create backend/.env
 cat > backend/.env << 'EOF'
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/?appName=schedulerAI
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/google/callback
 PORT=3001
 EOF
 
-# Start the backend (terminal 1)
-cd backend && npm install && npm run dev
+# Terminal 1 — backend
+cd backend && npm run dev
 
-# Start the frontend (terminal 2)
-cd frontend && npm install && npm run dev
+# Terminal 2 — frontend
+cd frontend && npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open [http://localhost:5173](http://localhost:5173).
 
-## Environment Variables
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full setup guide including MongoDB Atlas and Google Cloud setup.
 
-Create `backend/.env` with these values:
+---
 
-| Variable | Description | Where to get it |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | Authenticates requests to the Claude API | [console.anthropic.com](https://console.anthropic.com) → Settings → API Keys |
-| `GOOGLE_CLIENT_ID` | OAuth 2.0 client ID for Google Calendar sync | Google Cloud Console → APIs & Services → Credentials |
-| `GOOGLE_CLIENT_SECRET` | OAuth 2.0 client secret | Same credentials page as above |
-| `GOOGLE_REDIRECT_URI` | OAuth callback URL | Set to `http://localhost:3001/api/auth/google/callback` |
-| `PORT` | Port the backend listens on | Set to `3001` (must match frontend's API base URL) |
+## Documentation
 
-## Running Tests
+| Document | Description |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System diagrams, component tree, database schema, AI prompt architecture |
+| [docs/API.md](docs/API.md) | Complete REST API reference with request/response schemas and curl examples |
+| [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | Development setup, project structure, code style, and contribution guidelines |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production environment variables, deploy process, and known limitations |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Architecture Decision Records — why Zustand, MongoDB, inline styles, etc. |
+
+---
+
+## Architecture
+
+Three-layer architecture: React frontend (Vercel) → Express backend (Render) → Claude API + MongoDB Atlas.
+
+```
+User (browser)
+  └── Vercel CDN (React + Vite)
+        └── Render (Node.js + Express)
+              ├── Anthropic API  (schedule generation + adaptation)
+              ├── MongoDB Atlas  (goals, schedules, feedback, settings)
+              └── Google Calendar API  (OAuth 2.0, all-day events)
+```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for sequence diagrams covering goal submission, feedback adaptation, and the full Google Calendar OAuth flow.
+
+---
+
+## Testing
 
 ```bash
-# Backend unit tests (25 tests)
+# Backend unit tests — 27 tests
 cd backend && npm test
 
-# Frontend unit tests with coverage (157 tests, enforces 80% threshold)
+# Frontend unit tests — 206 tests (enforces 80% coverage threshold)
 cd frontend && npm run test:coverage
 
-# End-to-end tests with Playwright (8 tests, requires both servers running)
-cd ai-calendar && npx playwright test
+# E2E tests — 8 tests (requires both dev servers running)
+npx playwright test
 ```
 
 GitHub Actions runs all three suites automatically on every push and pull request to `main`.
 
-## Project Structure
+---
 
-```
-ai-calendar/
-├── backend/
-│   └── src/
-│       ├── index.ts                  # Express app entry point
-│       ├── middleware/
-│       │   └── errorHandler.ts
-│       ├── models/
-│       │   └── types.ts              # Shared TypeScript types
-│       ├── routes/
-│       │   ├── auth.ts               # Google OAuth endpoints
-│       │   ├── calendar.ts           # Google Calendar sync
-│       │   ├── feedback.ts           # POST /api/feedback
-│       │   └── goals.ts              # CRUD + schedule generation
-│       ├── services/
-│       │   ├── anthropic.ts          # Claude API — schedule generation & adaptation
-│       │   ├── db.ts                 # LowDB wrapper
-│       │   └── googleCalendar.ts     # Google Calendar API client
-│       └── test/
-│           ├── anthropic.test.ts
-│           ├── db.test.ts
-│           ├── feedback.route.test.ts
-│           ├── goals.route.test.ts
-│           └── smoke.test.ts
-├── frontend/
-│   └── src/
-│       ├── App.tsx                   # Root component, routing, rehydration
-│       ├── api/
-│       │   └── client.ts             # Axios API client
-│       ├── components/
-│       │   ├── Calendar/
-│       │   │   ├── CalendarGrid.tsx  # Monthly calendar view
-│       │   │   ├── CalendarSkeleton.tsx
-│       │   │   └── ProgressBar.tsx
-│       │   ├── FeedbackModal/
-│       │   │   ├── FeedbackModal.tsx # Star rating + notes form
-│       │   │   ├── FeedbackHistory.tsx
-│       │   │   ├── HistoryPanel.tsx
-│       │   │   ├── ScheduleChanges.tsx
-│       │   │   └── StarRating.tsx
-│       │   ├── GoalInput/
-│       │   │   └── GoalInput.tsx     # Goal submission form
-│       │   ├── TaskCard/
-│       │   │   ├── TaskCard.tsx
-│       │   │   └── TaskDetail.tsx    # Side panel with step instructions
-│       │   ├── ErrorBoundary.tsx
-│       │   ├── Header.tsx
-│       │   ├── Skeleton.tsx
-│       │   └── Toast.tsx
-│       ├── hooks/
-│       ├── store/
-│       │   └── useAppStore.ts        # Zustand store
-│       ├── test/                     # Vitest unit + integration tests
-│       ├── types/
-│       │   └── index.ts
-│       └── utils/
-│           ├── calendar.ts           # Date helpers
-│           └── diff.ts               # Schedule comparison for toast diffs
-├── tests/                            # Playwright E2E tests
-│   ├── fixtures/
-│   │   ├── mockFeedbackData.ts
-│   │   └── mockSchedule.ts
-│   ├── feedback.spec.ts
-│   ├── happy-path.spec.ts
-│   └── validation.spec.ts
-├── .github/
-│   └── workflows/
-│       └── ci.yml                    # GitHub Actions CI
-└── playwright.config.ts
-```
+## Deployment
 
-## Google Calendar Setup
+Both Vercel and Render are connected to this GitHub repository and auto-deploy on every push to `master`. No manual deploy steps needed.
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com) and create a new project (or select an existing one).
-2. Navigate to **APIs & Services → Library** and enable the **Google Calendar API**.
-3. Go to **APIs & Services → Credentials** and click **Create Credentials → OAuth 2.0 Client ID**.
-4. Set application type to **Web application**.
-5. Under **Authorized redirect URIs**, add: `http://localhost:3001/api/auth/google/callback`
-6. Click **Create** and copy the **Client ID** and **Client Secret**.
-7. Paste them into `backend/.env` as `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
-8. In the app, click the **Sync to Google Calendar** button on any task to start the OAuth flow.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment variable setup and known limitations (Render cold starts, Google OAuth testing mode, MongoDB storage cap).
+
+---
+
+## License
+
+MIT
