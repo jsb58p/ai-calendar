@@ -85,7 +85,7 @@ export function FeedbackModal() {
       titleTestId="modal-title"
       closeTestId="modal-close-button"
     >
-      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+      <form onSubmit={handleSubmit} noValidate className="space-y-6">
         {/* Rating */}
         <div data-testid="star-rating-section" className="mb-5">
           <p className="text-text-secondary text-sm mb-3">Rate your current schedule</p>

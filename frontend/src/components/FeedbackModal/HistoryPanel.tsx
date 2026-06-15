@@ -22,7 +22,9 @@ export function HistoryPanel() {
       panelTestId="history-panel"
       closeTestId="history-panel-close"
     >
-      <FeedbackHistory />
+      <div className="min-h-[200px]">
+        <FeedbackHistory />
+      </div>
     </Modal>
   )
 }

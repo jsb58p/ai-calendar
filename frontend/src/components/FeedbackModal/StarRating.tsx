@@ -46,7 +46,7 @@ export function StarRating({ value, onChange }: Props) {
             onMouseEnter={() => setHovered(n)}
             onMouseLeave={() => setHovered(null)}
             className={[
-              'inline-flex items-center justify-center w-9 h-9 text-3xl cursor-pointer',
+              'inline-flex items-center justify-center w-10 h-10 text-4xl cursor-pointer',
               'hover:scale-110 transition-transform duration-100',
               filled ? 'star-filled text-yellow-400' : 'star-empty text-zinc-600',
               clickedStar === n ? 'animate-bounce' : '',

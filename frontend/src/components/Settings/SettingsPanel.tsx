@@ -108,11 +108,11 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Settings" maxWidth="580px">
-      <div className="flex flex-col gap-6 max-h-[70vh] overflow-y-auto px-1">
+      <div className="flex flex-col gap-8 max-h-[70vh] overflow-y-auto px-1">
 
         {/* Section 1: Available Days */}
         <section>
-          <p className="text-text-secondary text-sm font-medium mb-3">
+          <p className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-3">
             Which days are you available to work on this goal?
           </p>
           <div className="grid grid-cols-7 gap-2">
@@ -135,7 +135,7 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
 
         {/* Section 2: Daily Availability Window */}
         <section>
-          <p className="text-text-secondary text-sm font-medium mb-3">Daily Availability Window</p>
+          <p className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-3">Daily Availability Window</p>
           <div className="grid grid-cols-2 gap-3">
             <Input
               label="Start time"
@@ -157,7 +157,7 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
 
         {/* Section 3: Task Duration */}
         <section>
-          <p className="text-text-secondary text-sm font-medium mb-3">Task Duration</p>
+          <p className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-3">Task Duration</p>
           <div className="grid grid-cols-2 gap-3">
             <Input
               label="Min duration (min)"
@@ -183,7 +183,7 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
 
         {/* Section 4: Difficulty Progression */}
         <section>
-          <p className="text-text-secondary text-sm font-medium mb-3">Difficulty Progression</p>
+          <p className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-3">Difficulty Progression</p>
           <div className="flex gap-2">
             {RAMP_OPTIONS.map(({ value, label, testId }) => (
               <button
@@ -201,7 +201,7 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
 
         {/* Section 5: Weekly Review Day */}
         <section>
-          <p className="text-text-secondary text-sm font-medium mb-3">Weekly Review Day</p>
+          <p className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-3">Weekly Review Day</p>
           <select
             data-testid="review-day-select"
             value={reviewDay}
@@ -216,7 +216,7 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
 
         {/* Section 6: Blackout Dates */}
         <section>
-          <p className="text-text-secondary text-sm font-medium mb-1">Blackout Dates (optional)</p>
+          <p className="text-sm font-semibold text-zinc-300 uppercase tracking-wider mb-1">Blackout Dates (optional)</p>
           <p className="text-text-muted text-xs mb-3">
             Days you&apos;re unavailable (vacations, holidays, etc.)
           </p>
