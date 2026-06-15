@@ -1,6 +1,6 @@
 import { useAppStore } from '../store/useAppStore'
 import { getGoogleAuthUrl } from '../api/client'
-import { Badge } from './ui'
+
 
 export function Header() {
   const activeGoalId = useAppStore((s) => s.activeGoalId)
@@ -12,6 +12,7 @@ export function Header() {
   const isHistoryPanelOpen = useAppStore((s) => s.isHistoryPanelOpen)
   const setHistoryPanelOpen = useAppStore((s) => s.setHistoryPanelOpen)
   const setSettingsPanelOpen = useAppStore((s) => s.setSettingsPanelOpen)
+  const setGoogleTokens = useAppStore((s) => s.setGoogleTokens)
 
   const activeGoal = goals.find((g) => g.id === activeGoalId) ?? null
   const activeSchedule = activeGoalId ? (schedules[activeGoalId] ?? null) : null
@@ -106,9 +107,21 @@ export function Header() {
         )}
 
         {googleTokens !== null && (
-          <Badge data-testid="google-connected-indicator" variant="info">
-            📅 Synced
-          </Badge>
+          <span
+            data-testid="google-connected-indicator"
+            style={{ color: '#22c55e', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}
+          >
+            📅 Calendar Synced
+            <button
+              onClick={() => {
+                setGoogleTokens(null)
+                localStorage.removeItem('googleTokens')
+              }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5a5a72', fontSize: '12px', padding: '0 0 0 4px' }}
+            >
+              Disconnect
+            </button>
+          </span>
         )}
 
         {activeGoal !== null && (

@@ -89,6 +89,18 @@ export function getGoogleAuthUrl(): string {
   return 'http://localhost:3001/api/auth/google'
 }
 
+export async function syncAllTasks(
+  goalId: string,
+  tokens: { access_token: string; refresh_token: string }
+): Promise<{ synced: number }> {
+  try {
+    const res = await api.post<{ synced: number }>('/calendar/sync-all', { goalId, ...tokens })
+    return res.data
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to sync tasks to calendar'))
+  }
+}
+
 export async function syncTaskToCalendar(
   taskId: string,
   tokens: { access_token: string; refresh_token: string }

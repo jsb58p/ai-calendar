@@ -19,6 +19,7 @@ interface AppState {
   isHistoryPanelOpen: boolean
   isSettingsPanelOpen: boolean
   settings: UserSettings
+  hasSeenGooglePrompt: boolean
 }
 
 interface AppActions {
@@ -43,6 +44,7 @@ interface AppActions {
   updateSettings: (patch: Partial<UserSettings>) => void
   resetSettings: () => void
   updateTaskSteps: (taskId: string, completedSteps: number[]) => void
+  setHasSeenGooglePrompt: (v: boolean) => void
 }
 
 export const useAppStore = create<AppState & AppActions>()((set) => ({
@@ -61,6 +63,7 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   isHistoryPanelOpen: false,
   isSettingsPanelOpen: false,
   settings: DEFAULT_SETTINGS,
+  hasSeenGooglePrompt: false,
 
   addGoal: (goal) => set((s) => ({ goals: [...s.goals, goal] })),
 
@@ -129,6 +132,8 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
     set({ settings: DEFAULT_SETTINGS })
     localStorage.setItem('userSettings', JSON.stringify(DEFAULT_SETTINGS))
   },
+
+  setHasSeenGooglePrompt: (hasSeenGooglePrompt) => set({ hasSeenGooglePrompt }),
 
   updateTaskSteps: (taskId, completedSteps) =>
     set((s) => {

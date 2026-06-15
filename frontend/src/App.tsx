@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAppStore } from './store/useAppStore'
-import { fetchSchedule, fetchGoals } from './api/client'
+import { fetchSchedule, fetchGoals, syncAllTasks } from './api/client'
 import { GoalInput } from './components/GoalInput/GoalInput'
 import { CalendarGrid } from './components/Calendar/CalendarGrid'
 import { CalendarSkeleton } from './components/Calendar/CalendarSkeleton'
@@ -14,6 +14,7 @@ import { ScheduleChanges } from './components/FeedbackModal/ScheduleChanges'
 import { Toast } from './components/Toast'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SettingsPanel } from './components/Settings/SettingsPanel'
+import { GoogleConnectPrompt } from './components/GoogleConnectPrompt'
 
 const queryClient = new QueryClient()
 
@@ -23,12 +24,16 @@ function AppContent() {
   const [isRehydrating, setIsRehydrating] = useState(
     () => !!localStorage.getItem('activeGoalId')
   )
+  const [showGooglePrompt, setShowGooglePrompt] = useState(false)
 
   const activeGoalId = useAppStore((s) => s.activeGoalId)
   const schedules = useAppStore((s) => s.schedules)
   const setSchedule = useAppStore((s) => s.setSchedule)
   const setActiveGoalId = useAppStore((s) => s.setActiveGoalId)
+  const googleTokens = useAppStore((s) => s.googleTokens)
   const setGoogleTokens = useAppStore((s) => s.setGoogleTokens)
+  const hasSeenGooglePrompt = useAppStore((s) => s.hasSeenGooglePrompt)
+  const setHasSeenGooglePrompt = useAppStore((s) => s.setHasSeenGooglePrompt)
   const setGoals = useAppStore((s) => s.setGoals)
   const updateSettings = useAppStore((s) => s.updateSettings)
   const toastMessage = useAppStore((s) => s.toastMessage)
@@ -39,6 +44,9 @@ function AppContent() {
   const setSelectedTaskId = useAppStore((s) => s.setSelectedTaskId)
   const isSettingsPanelOpen = useAppStore((s) => s.isSettingsPanelOpen)
   const setSettingsPanelOpen = useAppStore((s) => s.setSettingsPanelOpen)
+
+  // Track previous activeGoalId to detect fresh submissions (not rehydration)
+  const prevActiveGoalIdRef = useRef(activeGoalId)
 
   // Restore persisted tokens and handle OAuth redirect-back with tokens in URL
   useEffect(() => {
@@ -63,6 +71,12 @@ function AppContent() {
       }
     }
   }, [setGoogleTokens])
+
+  useEffect(() => {
+    if (localStorage.getItem('hasSeenGooglePrompt') === 'true') {
+      setHasSeenGooglePrompt(true)
+    }
+  }, [setHasSeenGooglePrompt])
 
   useEffect(() => {
     const saved = localStorage.getItem('userSettings')
@@ -100,6 +114,20 @@ function AppContent() {
       })
   }, [setSchedule, setActiveGoalId])
 
+  // Detect fresh goal submission (activeGoalId: null → value, not during rehydration)
+  useEffect(() => {
+    const prev = prevActiveGoalIdRef.current
+    prevActiveGoalIdRef.current = activeGoalId
+
+    if (prev === null && activeGoalId !== null && !isRehydrating) {
+      if (googleTokens === null && !hasSeenGooglePrompt) {
+        setShowGooglePrompt(true)
+      } else if (googleTokens !== null) {
+        syncAllTasks(activeGoalId, googleTokens).catch(console.error)
+      }
+    }
+  }, [activeGoalId, isRehydrating, googleTokens, hasSeenGooglePrompt])
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape' && selectedTaskId !== null) {
@@ -109,6 +137,12 @@ function AppContent() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [selectedTaskId, setSelectedTaskId])
+
+  function handleCloseGooglePrompt() {
+    setShowGooglePrompt(false)
+    setHasSeenGooglePrompt(true)
+    localStorage.setItem('hasSeenGooglePrompt', 'true')
+  }
 
   const activeSchedule = activeGoalId ? (schedules[activeGoalId] ?? null) : null
 
@@ -156,6 +190,7 @@ function AppContent() {
         </div>
       )}
       <SettingsPanel isOpen={isSettingsPanelOpen} onClose={() => setSettingsPanelOpen(false)} />
+      <GoogleConnectPrompt isOpen={showGooglePrompt} onClose={handleCloseGooglePrompt} />
     </div>
   )
 }
