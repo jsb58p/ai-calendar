@@ -20,8 +20,9 @@ authRouter.get('/google/callback', async (req: Request, res: Response, next: Nex
     }
 
     const { access_token, refresh_token } = await exchangeCode(code)
+    const frontendUrl = process.env['FRONTEND_URL'] || 'http://localhost:5173'
     const params = new URLSearchParams({ access_token, refresh_token })
-    res.redirect(`http://localhost:5173?${params.toString()}`)
+    res.redirect(`${frontendUrl}?${params.toString()}`)
   } catch (err) {
     next(err)
   }
