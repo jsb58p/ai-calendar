@@ -28,6 +28,7 @@ const FAKE_TASK: Task = {
 
 const FAKE_GOAL: GoalInputType = {
   id: 'goal-1',
+  userId: 'user-1',
   title: 'Learn guitar',
   description: 'Practice daily for 30 min',
   targetDate: '2026-09-01',

@@ -4,8 +4,8 @@ import { EmailVerified } from '../components/Auth/EmailVerified'
 
 beforeEach(() => {
   // Reset location so navigation tests start clean
-  delete (window as Record<string, unknown>).location
-  ;(window as Record<string, unknown>).location = { href: '' }
+  delete (window as unknown as Record<string, unknown>).location
+  ;(window as unknown as Record<string, unknown>).location = { href: '' }
 })
 
 describe('EmailVerified', () => {

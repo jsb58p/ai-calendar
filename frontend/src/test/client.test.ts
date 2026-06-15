@@ -46,6 +46,7 @@ import {
 
 const MOCK_GOAL: GoalInput = {
   id: 'goal-1',
+  userId: 'user-1',
   title: 'Learn Guitar',
   description: 'Practice daily',
   targetDate: '2026-12-31',
