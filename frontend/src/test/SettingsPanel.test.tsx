@@ -81,30 +81,30 @@ describe('SettingsPanel', () => {
 
   it('Monday toggle is active by default (in DEFAULT_SETTINGS.availableDays)', () => {
     render(<SettingsPanel isOpen={true} onClose={noop} />)
-    expect(screen.getByTestId('day-toggle-1')).toHaveClass('bg-accent')
+    expect(screen.getByTestId('day-toggle-1')).toHaveClass('bg-indigo-600')
   })
 
   it('Sunday toggle is inactive by default', () => {
     render(<SettingsPanel isOpen={true} onClose={noop} />)
-    expect(screen.getByTestId('day-toggle-0')).not.toHaveClass('bg-accent')
+    expect(screen.getByTestId('day-toggle-0')).not.toHaveClass('bg-indigo-600')
   })
 
   it('clicking an active day removes it from selection', async () => {
     const user = userEvent.setup()
     render(<SettingsPanel isOpen={true} onClose={noop} />)
     const monBtn = screen.getByTestId('day-toggle-1')
-    expect(monBtn).toHaveClass('bg-accent')
+    expect(monBtn).toHaveClass('bg-indigo-600')
     await user.click(monBtn)
-    expect(monBtn).not.toHaveClass('bg-accent')
+    expect(monBtn).not.toHaveClass('bg-indigo-600')
   })
 
   it('clicking an inactive day adds it to selection', async () => {
     const user = userEvent.setup()
     render(<SettingsPanel isOpen={true} onClose={noop} />)
     const sunBtn = screen.getByTestId('day-toggle-0')
-    expect(sunBtn).not.toHaveClass('bg-accent')
+    expect(sunBtn).not.toHaveClass('bg-indigo-600')
     await user.click(sunBtn)
-    expect(sunBtn).toHaveClass('bg-accent')
+    expect(sunBtn).toHaveClass('bg-indigo-600')
   })
 
   it('cannot deselect all days — last remaining active day click is ignored', async () => {
@@ -113,9 +113,9 @@ describe('SettingsPanel', () => {
     const user = userEvent.setup()
     render(<SettingsPanel isOpen={true} onClose={noop} />)
     const wedBtn = screen.getByTestId('day-toggle-3')
-    expect(wedBtn).toHaveClass('bg-accent')
+    expect(wedBtn).toHaveClass('bg-indigo-600')
     await user.click(wedBtn)
-    expect(wedBtn).toHaveClass('bg-accent') // still active — guard held
+    expect(wedBtn).toHaveClass('bg-indigo-600') // still active — guard held
   })
 
   it('start time input renders with default value "09:00"', () => {
