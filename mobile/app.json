@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "SchedulerAI",
+    "slug": "schedulerai",
+    "scheme": "schedulerai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "platforms": ["android"],
+    "android": {
+      "package": "com.schedulerai.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0a0a0f"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "userInterfaceStyle": "dark",
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
