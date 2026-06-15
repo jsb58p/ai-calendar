@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { format, parseISO } from 'date-fns'
 import { useAppStore } from '../../store/useAppStore'
 import { syncTaskToCalendar, updateTaskStatus as apiUpdateTaskStatus, updateStepCompletion } from '../../api/client'
@@ -129,11 +130,23 @@ export function TaskDetail() {
                 onChange={() => toggleStep(index)}
                 className="w-4 h-4 rounded-sm border border-border-default bg-bg-muted checked:bg-accent flex-shrink-0 mt-0.5 cursor-pointer"
               />
-              <span
-                className={`text-text-primary text-sm leading-relaxed${(task.completedSteps?.includes(index) ?? false) ? ' line-through text-text-muted' : ''}`}
-              >
-                {index + 1}. {step}
-              </span>
+              <div className={(task.completedSteps?.includes(index) ?? false) ? 'line-through text-text-muted' : ''}>
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <p className="text-text-primary text-sm leading-relaxed">{children}</p>,
+                    strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
+                    em: ({ children }) => <em className="text-text-secondary italic">{children}</em>,
+                    h1: ({ children }) => <h1 className="text-white font-bold text-base mb-1">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-white font-semibold text-sm mb-1">{children}</h2>,
+                    code: ({ children }) => <code className="bg-bg-muted text-accent font-mono text-xs px-1.5 py-0.5 rounded">{children}</code>,
+                    ul: ({ children }) => <ul className="list-disc list-inside space-y-1 text-text-primary text-sm">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 text-text-primary text-sm">{children}</ol>,
+                    li: ({ children }) => <li className="text-text-primary text-sm">{children}</li>,
+                  }}
+                >
+                  {step}
+                </ReactMarkdown>
+              </div>
             </li>
           ))}
         </ol>

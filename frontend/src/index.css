@@ -43,8 +43,8 @@ html, body, #root {
 ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
 
 ::selection {
-  background: #6366f120;
-  color: #f0f0ff;
+  background: #6366f1;
+  color: #ffffff;
 }
 
 @keyframes spin {
