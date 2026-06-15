@@ -11,7 +11,6 @@ import {
 } from '../../utils/calendar'
 import { format, parseISO } from 'date-fns'
 import { TaskCard } from '../TaskCard/TaskCard'
-import { Button } from '../ui'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -66,53 +65,48 @@ export function CalendarGrid({ schedule }: Props) {
   return (
     <div className="flex-1 flex flex-col bg-bg-base overflow-hidden">
       {/* Navigation row */}
-      <div className="flex items-center gap-3 px-6 py-3 bg-bg-surface border-b border-border-default">
-        <Button
+      <div className="flex items-center gap-3 px-4 py-3 bg-bg-surface border-b border-border-default flex-shrink-0">
+        <button
           data-testid="prev-month-button"
           aria-label="Previous month"
-          variant="ghost"
-          size="sm"
           onClick={prevMonth}
-          className="font-mono text-lg"
+          className="bg-zinc-800 hover:bg-zinc-700 text-white rounded-md px-3 py-1 text-lg font-mono transition-all duration-150 active:scale-95 select-none"
         >
           ‹
-        </Button>
+        </button>
 
         <span
           data-testid="month-display"
-          className="font-mono font-medium text-text-primary text-sm min-w-[140px] text-center"
+          className="font-mono font-semibold text-text-primary text-base min-w-[140px] text-center"
         >
           {formatDisplayDate(new Date(displayYear, displayMonth, 1))}
         </span>
 
-        <Button
+        <button
           data-testid="next-month-button"
           aria-label="Next month"
-          variant="ghost"
-          size="sm"
           onClick={nextMonth}
-          className="font-mono text-lg"
+          className="bg-zinc-800 hover:bg-zinc-700 text-white rounded-md px-3 py-1 text-lg font-mono transition-all duration-150 active:scale-95 select-none"
         >
           ›
-        </Button>
+        </button>
 
-        <Button
+        <button
           data-testid="today-button"
-          variant="secondary"
-          size="sm"
           onClick={goToToday}
+          className="bg-zinc-800 hover:bg-zinc-700 text-white text-sm px-3 py-1 rounded-md transition-all duration-150 active:scale-95 select-none"
         >
           Today
-        </Button>
+        </button>
       </div>
 
       {/* Day-of-week header row */}
-      <div className="grid grid-cols-7 bg-bg-surface border-b border-border-default">
+      <div className="grid grid-cols-7 bg-bg-surface border-b border-border-default flex-shrink-0">
         {DAY_LABELS.map((label) => (
           <div
             key={label}
             data-testid="day-header"
-            className="py-2 text-center text-text-muted text-xs font-mono font-medium uppercase tracking-wider"
+            className="py-2 text-center text-zinc-400 text-xs font-mono font-medium uppercase tracking-wider"
           >
             {label}
           </div>
