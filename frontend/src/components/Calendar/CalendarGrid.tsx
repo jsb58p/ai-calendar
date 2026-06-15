@@ -149,7 +149,7 @@ export function CalendarGrid({ schedule }: Props) {
                 setSelectedTaskId(null)
               }}
               className={[
-                'flex flex-col p-2 min-h-[100px] overflow-hidden cursor-pointer transition-colors duration-100',
+                'flex flex-col p-2 min-h-[100px] overflow-visible cursor-pointer transition-colors duration-100',
                 isSelected ? 'bg-bg-elevated' : 'bg-bg-surface hover:bg-bg-muted',
                 isToday ? 'ring-1 ring-inset ring-accent' : '',
               ].join(' ')}
@@ -163,20 +163,22 @@ export function CalendarGrid({ schedule }: Props) {
                 {day.getDate()}
               </div>
 
-              {visibleTasks.map((task) => (
-                <div
-                  key={task.id}
-                  onClick={(e) => e.stopPropagation()}
-                  className="mb-1 relative group/chip"
-                >
-                  <TaskCard task={task} onClick={(t) => setSelectedTaskId(t.id)} />
-                  {task.description && (
-                    <div className="absolute bottom-full left-0 z-[70] w-48 bg-bg-elevated border border-border-default rounded-md px-2 py-1.5 text-text-secondary text-xs leading-snug hidden group-hover/chip:block pointer-events-none shadow-lg">
-                      {task.description.slice(0, 100)}
-                    </div>
-                  )}
-                </div>
-              ))}
+              <div className="overflow-hidden">
+                {visibleTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    onClick={(e) => e.stopPropagation()}
+                    className="mb-1 relative group/chip"
+                  >
+                    <TaskCard task={task} onClick={(t) => setSelectedTaskId(t.id)} />
+                    {task.description && (
+                      <div className="absolute bottom-full left-0 mb-1 z-[70] w-48 bg-bg-elevated border border-border-default rounded-md px-2 py-1.5 text-text-secondary text-xs whitespace-normal shadow-elevated pointer-events-none hidden group-hover/chip:block">
+                        {task.description.slice(0, 100)}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
 
               {extraCount > 0 && (
                 <div
