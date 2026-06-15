@@ -1,6 +1,6 @@
 import { useAppStore } from '../store/useAppStore'
 import { getGoogleAuthUrl } from '../api/client'
-import { Button, Badge } from './ui'
+import { Badge } from './ui'
 
 export function Header() {
   const activeGoalId = useAppStore((s) => s.activeGoalId)
@@ -22,7 +22,8 @@ export function Header() {
   return (
     <header
       data-testid="header"
-      className="fixed top-0 left-0 right-0 z-40 bg-bg-surface/80 backdrop-blur-md border-b border-border-default h-14 flex items-center px-6 gap-4"
+      className="fixed top-0 left-0 right-0 z-40 bg-bg-surface/80 backdrop-blur-md border-b border-border-default h-14 flex items-center gap-4"
+      style={{ paddingLeft: '24px', paddingRight: '24px' }}
     >
       {activeSchedule && totalCount > 0 && (
         <div
@@ -30,6 +31,7 @@ export function Header() {
           style={{ width: `${percentComplete}%` }}
         />
       )}
+
       {/* Left: brand */}
       <div className="flex items-center flex-shrink-0">
         <span
@@ -61,47 +63,46 @@ export function Header() {
       </div>
 
       {/* Right: actions */}
-      <div className="flex items-center gap-2 flex-shrink-0">
-        <Button
+      <div className="flex-shrink-0" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button
           data-testid="settings-button"
-          variant="ghost"
-          size="sm"
           onClick={() => setSettingsPanelOpen(true)}
           aria-label="Settings"
+          style={{ background: '#22222e', border: '1px solid #2a2a3a', borderRadius: '6px', padding: '6px 10px', color: '#9090aa', cursor: 'pointer' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#2a2a3a' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#22222e' }}
         >
           ⚙
-        </Button>
+        </button>
 
-        <Button
+        <button
           data-testid="history-button"
-          variant="ghost"
-          size="sm"
           onClick={() => setHistoryPanelOpen(!isHistoryPanelOpen)}
+          style={{ background: '#22222e', border: '1px solid #2a2a3a', borderRadius: '6px', padding: '6px 10px', color: '#9090aa', cursor: 'pointer' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#2a2a3a' }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#22222e' }}
         >
           ⏱ History
-        </Button>
+        </button>
 
         {activeGoal !== null && (
-          <Button
+          <button
             data-testid="give-feedback-button"
-            variant="secondary"
-            size="sm"
             onClick={() => setFeedbackModalOpen(true)}
+            style={{ background: '#1a1a24', border: '1px solid #6366f1', borderRadius: '6px', padding: '6px 14px', color: '#f0f0ff', cursor: 'pointer', fontSize: '14px' }}
           >
             Give Feedback
-          </Button>
+          </button>
         )}
 
         {googleTokens === null && activeGoal !== null && (
-          <Button
+          <button
             data-testid="google-connect-button"
-            variant="ghost"
-            size="sm"
-            className="text-info"
             onClick={() => { window.location.href = getGoogleAuthUrl() }}
+            style={{ background: 'transparent', border: '1px solid #2a2a3a', borderRadius: '6px', padding: '6px 12px', color: '#38bdf8', cursor: 'pointer', fontSize: '14px' }}
           >
             Connect Google Calendar
-          </Button>
+          </button>
         )}
 
         {googleTokens !== null && (
@@ -111,18 +112,16 @@ export function Header() {
         )}
 
         {activeGoal !== null && (
-          <Button
+          <button
             data-testid="change-goal-button"
-            variant="ghost"
-            size="sm"
-            className="text-text-muted"
             onClick={() => {
               clearActiveGoal()
               localStorage.removeItem('activeGoalId')
             }}
+            style={{ background: 'transparent', border: 'none', padding: '6px 12px', color: '#5a5a72', cursor: 'pointer', fontSize: '14px' }}
           >
             Change Goal
-          </Button>
+          </button>
         )}
       </div>
     </header>
