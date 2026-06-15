@@ -167,15 +167,11 @@ export function CalendarGrid({ schedule }: Props) {
                 {visibleTasks.map((task) => (
                   <div
                     key={task.id}
+                    title={task.description ? task.description.slice(0, 100) : task.title}
                     onClick={(e) => e.stopPropagation()}
-                    className="mb-1 relative group/chip"
+                    className="mb-1"
                   >
                     <TaskCard task={task} onClick={(t) => setSelectedTaskId(t.id)} />
-                    {task.description && (
-                      <div className="absolute bottom-full left-0 mb-1 z-[70] w-48 bg-bg-elevated border border-border-default rounded-md px-2 py-1.5 text-text-secondary text-xs whitespace-normal shadow-elevated pointer-events-none hidden group-hover/chip:block">
-                        {task.description.slice(0, 100)}
-                      </div>
-                    )}
                   </div>
                 ))}
               </div>
