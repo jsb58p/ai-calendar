@@ -52,7 +52,7 @@ export async function getFeedbackForSchedule(scheduleId: string): Promise<Feedba
     .collection('feedback')
     .find({ scheduleId }, { projection: { _id: 0 } })
     .toArray()
-  return docs as FeedbackEntry[]
+  return docs as unknown as FeedbackEntry[]
 }
 
 export async function saveSettings(goalId: string, settings: UserSettings): Promise<void> {
@@ -73,7 +73,7 @@ export async function getAllGoals(): Promise<GoalInput[]> {
     .collection('goals')
     .find({}, { projection: { _id: 0 } })
     .toArray()
-  return docs as GoalInput[]
+  return docs as unknown as GoalInput[]
 }
 
 export { uuidv4 }
