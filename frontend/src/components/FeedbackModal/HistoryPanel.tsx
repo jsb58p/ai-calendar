@@ -18,7 +18,6 @@ export function HistoryPanel() {
       isOpen={isHistoryPanelOpen}
       onClose={() => setHistoryPanelOpen(false)}
       title="Feedback History"
-      maxWidth="560px"
       panelTestId="history-panel"
       closeTestId="history-panel-close"
     >

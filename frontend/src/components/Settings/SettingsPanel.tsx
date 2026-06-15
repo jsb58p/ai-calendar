@@ -107,7 +107,7 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Settings" maxWidth="580px">
+    <Modal isOpen={isOpen} onClose={onClose} title="Settings">
       <div className="flex flex-col gap-8 max-h-[70vh] overflow-y-auto px-1">
 
         {/* Section 1: Available Days */}

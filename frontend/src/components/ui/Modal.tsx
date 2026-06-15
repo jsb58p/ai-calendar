@@ -6,7 +6,6 @@ interface Props {
   onClose: () => void
   title: string
   children: ReactNode
-  maxWidth?: string
   backdropTestId?: string
   panelTestId?: string
   titleTestId?: string
@@ -18,7 +17,6 @@ export default function Modal({
   onClose,
   title,
   children,
-  maxWidth = '600px',
   backdropTestId,
   panelTestId,
   titleTestId,
@@ -38,13 +36,12 @@ export default function Modal({
   return (
     <div
       data-testid={backdropTestId}
-      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center"
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-6"
       onClick={onClose}
     >
       <div
         data-testid={panelTestId}
-        className="bg-bg-elevated border border-border-default rounded-xl shadow-elevated w-full mx-6 animate-fade-in"
-        style={{ maxWidth }}
+        className="w-full max-w-[600px] bg-bg-elevated border border-border-default rounded-xl shadow-elevated flex flex-col animate-fade-in max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center px-8 py-5 border-b border-border-default">

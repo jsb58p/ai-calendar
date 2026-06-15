@@ -79,7 +79,6 @@ export function FeedbackModal() {
       isOpen={isFeedbackModalOpen}
       onClose={handleClose}
       title="How's your schedule working?"
-      maxWidth="560px"
       backdropTestId="modal-backdrop"
       panelTestId="modal-panel"
       titleTestId="modal-title"
