@@ -44,12 +44,18 @@ function buildCalendarClient(accessToken: string, refreshToken: string) {
   return google.calendar({ version: 'v3', auth })
 }
 
+function nextDay(dateStr: string): string {
+  const d = new Date(dateStr)
+  d.setUTCDate(d.getUTCDate() + 1)
+  return d.toISOString().slice(0, 10)
+}
+
 function buildEventBody(task: Task) {
   return {
     summary: task.title,
     description: `${task.description}\n\nSteps:\n${task.stepInstructions.join('\n')}`,
     start: { date: task.scheduledDate },
-    end: { date: task.scheduledDate },
+    end: { date: nextDay(task.scheduledDate) },
   }
 }
 
@@ -60,10 +66,16 @@ export async function createCalendarEvent(
 ): Promise<string> {
   const calendar = buildCalendarClient(accessToken, refreshToken)
 
-  const response = await calendar.events.insert({
-    calendarId: 'primary',
-    requestBody: buildEventBody(task),
-  })
+  let response
+  try {
+    response = await calendar.events.insert({
+      calendarId: 'primary',
+      requestBody: buildEventBody(task),
+    })
+  } catch (err) {
+    console.error('Google Calendar createCalendarEvent error:', err)
+    throw err
+  }
 
   const eventId = response.data.id
   if (!eventId) {
