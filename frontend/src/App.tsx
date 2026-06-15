@@ -123,8 +123,11 @@ function AppContent() {
           <GoalInput />
         </div>
       ) : (
-        <div className="flex-1 flex flex-col overflow-hidden pt-14">
+        <div className="flex-1 flex flex-col overflow-hidden">
           <Header />
+
+          {/* explicit spacer so content starts below the fixed h-14 header */}
+          <div className="h-14 flex-shrink-0" />
 
           <ProgressBar schedule={activeSchedule} />
 
