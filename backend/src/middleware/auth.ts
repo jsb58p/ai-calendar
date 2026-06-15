@@ -17,11 +17,13 @@ export function generateToken(payload: AuthTokenPayload): string {
   return jwt.sign(payload, secret, { expiresIn } as jwt.SignOptions)
 }
 
+const isProduction = process.env['NODE_ENV'] === 'production'
+
 export function setAuthCookie(res: Response, token: string): void {
   res.cookie('auth_token', token, {
     httpOnly: true,
-    secure: process.env['NODE_ENV'] === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: '/',
   })
@@ -30,8 +32,8 @@ export function setAuthCookie(res: Response, token: string): void {
 export function clearAuthCookie(res: Response): void {
   res.cookie('auth_token', '', {
     httpOnly: true,
-    secure: process.env['NODE_ENV'] === 'production',
-    sameSite: 'lax',
+    secure: true,
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: 0,
     path: '/',
   })
