@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useAppStore } from './store/useAppStore'
-import { fetchSchedule, fetchGoals, syncAllTasks } from './api/client'
+import { fetchSchedule, fetchGoals, syncAllTasks, getMe } from './api/client'
 import { GoalInput } from './components/GoalInput/GoalInput'
 import { CalendarGrid } from './components/Calendar/CalendarGrid'
 import { CalendarSkeleton } from './components/Calendar/CalendarSkeleton'
@@ -15,40 +15,51 @@ import { Toast } from './components/Toast'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SettingsPanel } from './components/Settings/SettingsPanel'
 import { GoogleConnectPrompt } from './components/GoogleConnectPrompt'
+import { LoginPage } from './components/Auth/LoginPage'
+import { EmailVerified } from './components/Auth/EmailVerified'
 
 const queryClient = new QueryClient()
 
 function AppContent() {
-  // True only when the app first loads with a saved goal ID in localStorage.
-  // Initialized synchronously so the very first render skips the GoalInput flash.
   const [isRehydrating, setIsRehydrating] = useState(
     () => !!localStorage.getItem('activeGoalId')
   )
   const [showGooglePrompt, setShowGooglePrompt] = useState(false)
 
-  const activeGoalId = useAppStore((s) => s.activeGoalId)
-  const schedules = useAppStore((s) => s.schedules)
-  const setSchedule = useAppStore((s) => s.setSchedule)
-  const setActiveGoalId = useAppStore((s) => s.setActiveGoalId)
-  const googleTokens = useAppStore((s) => s.googleTokens)
-  const setGoogleTokens = useAppStore((s) => s.setGoogleTokens)
-  const hasSeenGooglePrompt = useAppStore((s) => s.hasSeenGooglePrompt)
+  const authLoading      = useAppStore((s) => s.authLoading)
+  const isAuthenticated  = useAppStore((s) => s.isAuthenticated)
+  const setCurrentUser   = useAppStore((s) => s.setCurrentUser)
+  const setAuthLoading   = useAppStore((s) => s.setAuthLoading)
+  const activeGoalId     = useAppStore((s) => s.activeGoalId)
+  const schedules        = useAppStore((s) => s.schedules)
+  const setSchedule      = useAppStore((s) => s.setSchedule)
+  const setActiveGoalId  = useAppStore((s) => s.setActiveGoalId)
+  const googleTokens     = useAppStore((s) => s.googleTokens)
+  const setGoogleTokens  = useAppStore((s) => s.setGoogleTokens)
+  const hasSeenGooglePrompt   = useAppStore((s) => s.hasSeenGooglePrompt)
   const setHasSeenGooglePrompt = useAppStore((s) => s.setHasSeenGooglePrompt)
-  const setGoals = useAppStore((s) => s.setGoals)
-  const updateSettings = useAppStore((s) => s.updateSettings)
-  const toastMessage = useAppStore((s) => s.toastMessage)
-  const setToastMessage = useAppStore((s) => s.setToastMessage)
-  const toastDiffs = useAppStore((s) => s.toastDiffs)
-  const setToastDiffs = useAppStore((s) => s.setToastDiffs)
-  const selectedTaskId = useAppStore((s) => s.selectedTaskId)
+  const setGoals         = useAppStore((s) => s.setGoals)
+  const updateSettings   = useAppStore((s) => s.updateSettings)
+  const toastMessage     = useAppStore((s) => s.toastMessage)
+  const setToastMessage  = useAppStore((s) => s.setToastMessage)
+  const toastDiffs       = useAppStore((s) => s.toastDiffs)
+  const setToastDiffs    = useAppStore((s) => s.setToastDiffs)
+  const selectedTaskId   = useAppStore((s) => s.selectedTaskId)
   const setSelectedTaskId = useAppStore((s) => s.setSelectedTaskId)
-  const isSettingsPanelOpen = useAppStore((s) => s.isSettingsPanelOpen)
+  const isSettingsPanelOpen  = useAppStore((s) => s.isSettingsPanelOpen)
   const setSettingsPanelOpen = useAppStore((s) => s.setSettingsPanelOpen)
 
-  // Track previous activeGoalId to detect fresh submissions (not rehydration)
   const prevActiveGoalIdRef = useRef(activeGoalId)
 
-  // Restore persisted tokens and handle OAuth redirect-back with tokens in URL
+  // ── Auth check (runs once on mount) ────────────────────────────────────────
+  useEffect(() => {
+    getMe()
+      .then(({ user }) => setCurrentUser(user))
+      .catch(() => setCurrentUser(null))
+      .finally(() => setAuthLoading(false))
+  }, [setCurrentUser, setAuthLoading])
+
+  // ── Restore Google Calendar OAuth tokens ───────────────────────────────────
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const access_token = params.get('access_token')
@@ -77,6 +88,7 @@ function AppContent() {
     }
   }, [setGoogleTokens])
 
+  // ── Persist flags ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (localStorage.getItem('hasSeenGooglePrompt') === 'true') {
       setHasSeenGooglePrompt(true)
@@ -94,13 +106,16 @@ function AppContent() {
     }
   }, [updateSettings])
 
+  // ── Data loading (only when authenticated) ─────────────────────────────────
   useEffect(() => {
+    if (!isAuthenticated) return
     fetchGoals()
       .then(({ goals }) => setGoals(goals))
-      .catch(() => { /* non-critical — goals will repopulate on next goal submit */ })
-  }, [setGoals])
+      .catch(() => { /* non-critical */ })
+  }, [isAuthenticated, setGoals])
 
   useEffect(() => {
+    if (!isAuthenticated) return
     const savedId = localStorage.getItem('activeGoalId')
     if (!savedId) {
       setIsRehydrating(false)
@@ -117,9 +132,9 @@ function AppContent() {
       .finally(() => {
         setIsRehydrating(false)
       })
-  }, [setSchedule, setActiveGoalId])
+  }, [isAuthenticated, setSchedule, setActiveGoalId])
 
-  // Detect fresh goal submission (activeGoalId: null → value, not during rehydration)
+  // ── Detect fresh goal submission → auto-sync / show Google prompt ──────────
   useEffect(() => {
     const prev = prevActiveGoalIdRef.current
     prevActiveGoalIdRef.current = activeGoalId
@@ -133,6 +148,7 @@ function AppContent() {
     }
   }, [activeGoalId, isRehydrating, googleTokens, hasSeenGooglePrompt])
 
+  // ── Keyboard shortcut: Escape closes task detail ───────────────────────────
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape' && selectedTaskId !== null) {
@@ -149,6 +165,41 @@ function AppContent() {
     localStorage.setItem('hasSeenGooglePrompt', 'true')
   }
 
+  // ── Route resolution ───────────────────────────────────────────────────────
+  const path = window.location.pathname
+
+  if (authLoading) {
+    return (
+      <div
+        data-testid="auth-loading"
+        className="min-h-screen bg-bg-base flex items-center justify-center"
+      >
+        <div style={{ textAlign: 'center' }}>
+          <div
+            className="animate-spin-slow rounded-full border-t-accent mx-auto"
+            style={{
+              width: '32px',
+              height: '32px',
+              border: '2px solid rgba(99,102,241,0.2)',
+              borderTopColor: '#6366f1',
+              marginBottom: '12px',
+            }}
+          />
+          <p className="text-text-secondary" style={{ fontSize: '14px' }}>Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (path === '/verified') {
+    return <EmailVerified />
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage />
+  }
+
+  // ── Authenticated app ──────────────────────────────────────────────────────
   const activeSchedule = activeGoalId ? (schedules[activeGoalId] ?? null) : null
 
   return (
@@ -165,7 +216,6 @@ function AppContent() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header />
 
-          {/* explicit spacer so content starts below the fixed h-14 header */}
           <div className="h-14 flex-shrink-0" />
 
           <ProgressBar schedule={activeSchedule} />

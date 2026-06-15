@@ -1,21 +1,36 @@
 import { useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
-import { getGoogleAuthUrl, syncAllTasks } from '../api/client'
+import { getGoogleAuthUrl, syncAllTasks, logout as apiLogout } from '../api/client'
 import { Badge } from './ui'
 
 
 export function Header() {
   const [syncLabel, setSyncLabel] = useState<'idle' | 'syncing' | 'done'>('idle')
-  const activeGoalId = useAppStore((s) => s.activeGoalId)
-  const goals = useAppStore((s) => s.goals)
-  const schedules = useAppStore((s) => s.schedules)
-  const googleTokens = useAppStore((s) => s.googleTokens)
-  const setFeedbackModalOpen = useAppStore((s) => s.setFeedbackModalOpen)
-  const clearActiveGoal = useAppStore((s) => s.clearActiveGoal)
-  const isHistoryPanelOpen = useAppStore((s) => s.isHistoryPanelOpen)
-  const setHistoryPanelOpen = useAppStore((s) => s.setHistoryPanelOpen)
-  const setSettingsPanelOpen = useAppStore((s) => s.setSettingsPanelOpen)
-  const setGoogleTokens = useAppStore((s) => s.setGoogleTokens)
+  const activeGoalId      = useAppStore((s) => s.activeGoalId)
+  const goals             = useAppStore((s) => s.goals)
+  const schedules         = useAppStore((s) => s.schedules)
+  const googleTokens      = useAppStore((s) => s.googleTokens)
+  const currentUser       = useAppStore((s) => s.currentUser)
+  const storeLogout       = useAppStore((s) => s.logout)
+  const setFeedbackModalOpen  = useAppStore((s) => s.setFeedbackModalOpen)
+  const clearActiveGoal       = useAppStore((s) => s.clearActiveGoal)
+  const isHistoryPanelOpen    = useAppStore((s) => s.isHistoryPanelOpen)
+  const setHistoryPanelOpen   = useAppStore((s) => s.setHistoryPanelOpen)
+  const setSettingsPanelOpen  = useAppStore((s) => s.setSettingsPanelOpen)
+  const setGoogleTokens       = useAppStore((s) => s.setGoogleTokens)
+
+  const initials = currentUser
+    ? (currentUser.displayName.trim().split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2))
+    : ''
+
+  async function handleLogout() {
+    try {
+      await apiLogout()
+    } catch {
+      // ignore — proceed with local cleanup regardless
+    }
+    storeLogout()
+  }
 
   const activeGoal = goals.find((g) => g.id === activeGoalId) ?? null
   const activeSchedule = activeGoalId ? (schedules[activeGoalId] ?? null) : null
@@ -36,15 +51,36 @@ export function Header() {
         />
       )}
 
-      {/* Left: brand */}
-      <div className="flex items-center flex-shrink-0">
-        <span
-          data-testid="app-name"
-          className="font-mono text-text-primary font-semibold text-lg tracking-tight"
-        >
-          SchedulerAI
-        </span>
-        <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent ml-0.5 mb-1" />
+      {/* Left: brand + user avatar */}
+      <div className="flex items-center flex-shrink-0" style={{ gap: '12px' }}>
+        <div className="flex items-center">
+          <span
+            data-testid="app-name"
+            className="font-mono text-text-primary font-semibold text-lg tracking-tight"
+          >
+            SchedulerAI
+          </span>
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent ml-0.5 mb-1" />
+        </div>
+        {currentUser && (
+          <div
+            data-testid="user-avatar"
+            title={currentUser.displayName}
+            className="rounded-full flex items-center justify-center flex-shrink-0"
+            style={{
+              width: '28px',
+              height: '28px',
+              background: '#6366f1',
+              color: '#fff',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '0.5px',
+              userSelect: 'none',
+            }}
+          >
+            {initials}
+          </div>
+        )}
       </div>
 
       {/* Center: goal title + completion count */}
@@ -156,6 +192,18 @@ export function Header() {
             style={{ background: 'transparent', border: 'none', padding: '6px 12px', color: '#5a5a72', cursor: 'pointer', fontSize: '14px' }}
           >
             Change Goal
+          </button>
+        )}
+
+        {currentUser && (
+          <button
+            data-testid="logout-button"
+            onClick={handleLogout}
+            style={{ background: 'transparent', border: 'none', padding: '6px 10px', color: '#5a5a72', cursor: 'pointer', fontSize: '13px' }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = '#9090aa' }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = '#5a5a72' }}
+          >
+            Sign Out
           </button>
         )}
       </div>

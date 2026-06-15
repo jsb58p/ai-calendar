@@ -2,8 +2,12 @@ import { create } from 'zustand'
 import type { GoalInput, Schedule, FeedbackEntry, Task, UserSettings } from '../types'
 import { DEFAULT_SETTINGS } from '../types'
 import type { DiffEntry } from '../utils/diff'
+import type { CurrentUser } from '../api/client'
 
 interface AppState {
+  currentUser: CurrentUser | null
+  isAuthenticated: boolean
+  authLoading: boolean
   goals: GoalInput[]
   schedules: Record<string, Schedule>
   feedback: FeedbackEntry[]
@@ -23,6 +27,9 @@ interface AppState {
 }
 
 interface AppActions {
+  setCurrentUser: (user: CurrentUser | null) => void
+  logout: () => void
+  setAuthLoading: (v: boolean) => void
   addGoal: (goal: GoalInput) => void
   setSchedule: (schedule: Schedule) => void
   addFeedback: (entry: FeedbackEntry) => void
@@ -48,6 +55,9 @@ interface AppActions {
 }
 
 export const useAppStore = create<AppState & AppActions>()((set) => ({
+  currentUser: null,
+  isAuthenticated: false,
+  authLoading: true,
   goals: [],
   schedules: {},
   feedback: [],
@@ -64,6 +74,28 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   isSettingsPanelOpen: false,
   settings: DEFAULT_SETTINGS,
   hasSeenGooglePrompt: false,
+
+  setCurrentUser: (user) => set({ currentUser: user, isAuthenticated: user !== null }),
+
+  logout: () => {
+    localStorage.removeItem('googleTokens')
+    localStorage.removeItem('userSettings')
+    set({
+      currentUser: null,
+      isAuthenticated: false,
+      goals: [],
+      schedules: {},
+      feedback: [],
+      activeGoalId: null,
+      googleTokens: null,
+      settings: DEFAULT_SETTINGS,
+      selectedTaskId: null,
+      toastMessage: null,
+      toastDiffs: [],
+    })
+  },
+
+  setAuthLoading: (authLoading) => set({ authLoading }),
 
   addGoal: (goal) => set((s) => ({ goals: [...s.goals, goal] })),
 

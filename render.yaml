@@ -21,7 +21,7 @@ services:
       - key: FRONTEND_URL
         sync: false
       - key: BACKEND_URL
-        sync: false
+        value: https://schedulerai-backend.onrender.com
       - key: JWT_SECRET
         sync: false
       - key: JWT_EXPIRES_IN
@@ -29,6 +29,8 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: EMAIL_FROM
-        sync: false
+        value: onboarding@resend.dev
+      - key: GOOGLE_AUTH_REDIRECT_URI
+        value: https://schedulerai-backend.onrender.com/api/auth/users/google/callback
       - key: PORT
         value: 10000

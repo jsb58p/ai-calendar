@@ -1,6 +1,13 @@
 import axios from 'axios'
 import type { GoalInput, Schedule, Task, UserSettings } from '../types'
 
+export type CurrentUser = {
+  id: string
+  email: string
+  displayName: string
+  emailVerified: boolean
+}
+
 const baseURL = import.meta.env['VITE_API_URL']
   ? `${import.meta.env['VITE_API_URL']}/api`
   : '/api'
@@ -89,9 +96,64 @@ export async function updateStepCompletion(
   }
 }
 
+export async function register(data: {
+  email: string
+  password: string
+  displayName: string
+}): Promise<{ user: CurrentUser; message: string }> {
+  try {
+    const res = await api.post<{ user: CurrentUser; message: string }>('/auth/users/register', data)
+    return res.data
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to create account'))
+  }
+}
+
+export async function login(data: {
+  email: string
+  password: string
+}): Promise<{ user: CurrentUser }> {
+  try {
+    const res = await api.post<{ user: CurrentUser }>('/auth/users/login', data)
+    return res.data
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to sign in'))
+  }
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await api.post('/auth/users/logout')
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to sign out'))
+  }
+}
+
+export async function getMe(): Promise<{ user: CurrentUser }> {
+  try {
+    const res = await api.get<{ user: CurrentUser }>('/auth/users/me')
+    return res.data
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Not authenticated'))
+  }
+}
+
+export async function resendVerification(): Promise<void> {
+  try {
+    await api.post('/auth/users/resend-verification')
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to resend verification email'))
+  }
+}
+
 export function getGoogleAuthUrl(): string {
   const base = import.meta.env['VITE_API_URL'] ?? 'http://localhost:3001'
   return `${base}/api/auth/google`
+}
+
+export function getGoogleSignInUrl(): string {
+  const base = import.meta.env['VITE_API_URL']
+  return base ? `${base}/api/auth/users/google` : '/api/auth/users/google'
 }
 
 export async function syncAllTasks(
