@@ -1,5 +1,6 @@
 import { useAppStore } from '../store/useAppStore'
 import { getGoogleAuthUrl } from '../api/client'
+import { Badge } from './ui'
 
 
 export function Header() {
