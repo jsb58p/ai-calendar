@@ -119,3 +119,28 @@ describe('GET /api/goals/:id/schedule', () => {
     expect(res.body).toEqual(MOCK_SCHEDULE)
   })
 })
+
+describe('PATCH /api/goals/:goalId/tasks/:taskId/steps', () => {
+  it('with valid completedSteps array returns 200 and updated task', async () => {
+    vi.mocked(getSchedule).mockResolvedValue(MOCK_SCHEDULE)
+    vi.mocked(saveSchedule).mockResolvedValue(undefined)
+
+    const res = await request(app)
+      .patch('/api/goals/goal-1/tasks/task-1/steps')
+      .send({ completedSteps: [0, 2] })
+
+    expect(res.status).toBe(200)
+    expect(res.body.id).toBe('task-1')
+    expect(res.body.completedSteps).toEqual([0, 2])
+  })
+
+  it('with unknown goalId returns 404', async () => {
+    vi.mocked(getSchedule).mockResolvedValue(undefined)
+
+    const res = await request(app)
+      .patch('/api/goals/no-such-goal/tasks/task-1/steps')
+      .send({ completedSteps: [1] })
+
+    expect(res.status).toBe(404)
+  })
+})

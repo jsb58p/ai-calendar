@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { format, parseISO } from 'date-fns'
 import { useAppStore } from '../../store/useAppStore'
-import { syncTaskToCalendar, updateTaskStatus as apiUpdateTaskStatus } from '../../api/client'
+import { syncTaskToCalendar, updateTaskStatus as apiUpdateTaskStatus, updateStepCompletion } from '../../api/client'
 import type { Task } from '../../types'
 import { Button, Badge } from '../ui'
 
@@ -17,14 +17,10 @@ export function TaskDetail() {
   const googleTokens      = useAppStore((s) => s.googleTokens)
   const setSelectedTaskId = useAppStore((s) => s.setSelectedTaskId)
   const updateTaskStatus  = useAppStore((s) => s.updateTaskStatus)
+  const updateTaskSteps   = useAppStore((s) => s.updateTaskSteps)
   const setHistoryPanelOpen = useAppStore((s) => s.setHistoryPanelOpen)
 
-  const [checkedSteps, setCheckedSteps] = useState<Set<number>>(new Set())
   const [syncing, setSyncing] = useState(false)
-
-  useEffect(() => {
-    setCheckedSteps(new Set())
-  }, [selectedTaskId])
 
   // Mutual exclusion: close HistoryPanel when a task is selected
   useEffect(() => {
@@ -40,12 +36,15 @@ export function TaskDetail() {
   if (task === null) return null
 
   function toggleStep(index: number) {
-    setCheckedSteps((prev) => {
-      const next = new Set(prev)
-      if (next.has(index)) next.delete(index)
-      else next.add(index)
-      return next
-    })
+    const current = task.completedSteps ?? []
+    const newSteps = current.includes(index)
+      ? current.filter((i) => i !== index)
+      : [...current, index]
+    updateTaskSteps(task.id, newSteps)
+    const goalId = Object.entries(schedules).find(([, s]) => s.tasks.some((t) => t.id === task.id))?.[0]
+    if (goalId) {
+      updateStepCompletion(goalId, task.id, newSteps).catch(console.error)
+    }
   }
 
   function persistStatus(taskId: string, status: Task['status']) {
@@ -126,12 +125,12 @@ export function TaskDetail() {
             >
               <input
                 type="checkbox"
-                checked={checkedSteps.has(index)}
+                checked={task.completedSteps?.includes(index) ?? false}
                 onChange={() => toggleStep(index)}
                 className="w-4 h-4 rounded-sm border border-border-default bg-bg-muted checked:bg-accent flex-shrink-0 mt-0.5 cursor-pointer"
               />
               <span
-                className={`text-text-primary text-sm leading-relaxed${checkedSteps.has(index) ? ' line-through text-text-muted' : ''}`}
+                className={`text-text-primary text-sm leading-relaxed${(task.completedSteps?.includes(index) ?? false) ? ' line-through text-text-muted' : ''}`}
               >
                 {index + 1}. {step}
               </span>

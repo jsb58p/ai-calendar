@@ -72,6 +72,19 @@ export async function updateTaskStatus(
   }
 }
 
+export async function updateStepCompletion(
+  goalId: string,
+  taskId: string,
+  completedSteps: number[]
+): Promise<Task> {
+  try {
+    const res = await api.patch<Task>(`/goals/${goalId}/tasks/${taskId}/steps`, { completedSteps })
+    return res.data
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to update step completion'))
+  }
+}
+
 export function getGoogleAuthUrl(): string {
   return 'http://localhost:3001/api/auth/google'
 }

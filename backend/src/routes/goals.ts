@@ -84,6 +84,48 @@ goalsRouter.patch(
   }
 )
 
+// PATCH /api/goals/:goalId/tasks/:taskId/steps
+goalsRouter.patch(
+  '/:goalId/tasks/:taskId/steps',
+  async (req: Request<{ goalId: string; taskId: string }>, res: Response, next: NextFunction) => {
+    try {
+      const { goalId, taskId } = req.params
+      const { completedSteps } = req.body as Record<string, unknown>
+
+      if (
+        !Array.isArray(completedSteps) ||
+        !completedSteps.every((s) => typeof s === 'number')
+      ) {
+        res.status(400).json({ error: 'completedSteps must be an array of numbers' })
+        return
+      }
+
+      const schedule = await getSchedule(goalId)
+      if (schedule === undefined) {
+        res.status(404).json({ error: 'Schedule not found' })
+        return
+      }
+
+      const taskIndex = schedule.tasks.findIndex((t) => t.id === taskId)
+      if (taskIndex === -1) {
+        res.status(404).json({ error: 'Task not found' })
+        return
+      }
+
+      const updatedTask: Task = { ...schedule.tasks[taskIndex]!, completedSteps }
+      const updatedSchedule = {
+        ...schedule,
+        tasks: schedule.tasks.map((t, i) => (i === taskIndex ? updatedTask : t)),
+      }
+
+      await saveSchedule(updatedSchedule)
+      res.status(200).json(updatedTask)
+    } catch (err) {
+      next(err)
+    }
+  }
+)
+
 function isValidSettings(s: unknown): s is UserSettings {
   if (typeof s !== 'object' || s === null) return false
   const o = s as Record<string, unknown>

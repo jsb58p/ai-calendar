@@ -42,6 +42,7 @@ interface AppActions {
   setSettingsPanelOpen: (v: boolean) => void
   updateSettings: (patch: Partial<UserSettings>) => void
   resetSettings: () => void
+  updateTaskSteps: (taskId: string, completedSteps: number[]) => void
 }
 
 export const useAppStore = create<AppState & AppActions>()((set) => ({
@@ -128,4 +129,25 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
     set({ settings: DEFAULT_SETTINGS })
     localStorage.setItem('userSettings', JSON.stringify(DEFAULT_SETTINGS))
   },
+
+  updateTaskSteps: (taskId, completedSteps) =>
+    set((s) => {
+      const updatedSchedules: Record<string, Schedule> = {}
+      let changed = false
+
+      for (const [goalId, schedule] of Object.entries(s.schedules)) {
+        const taskIndex = schedule.tasks.findIndex((t) => t.id === taskId)
+        if (taskIndex === -1) {
+          updatedSchedules[goalId] = schedule
+        } else {
+          const updatedTasks = schedule.tasks.map((t) =>
+            t.id === taskId ? { ...t, completedSteps } : t
+          )
+          updatedSchedules[goalId] = { ...schedule, tasks: updatedTasks }
+          changed = true
+        }
+      }
+
+      return changed ? { schedules: updatedSchedules } : s
+    }),
 }))

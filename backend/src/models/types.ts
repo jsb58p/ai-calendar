@@ -15,6 +15,7 @@ export interface Task {
   estimatedMinutes: number
   status: 'pending' | 'complete' | 'skipped'
   stepInstructions: string[]
+  completedSteps?: number[]
   googleCalendarEventId?: string
 }
 

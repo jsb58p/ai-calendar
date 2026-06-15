@@ -5,6 +5,7 @@ import type { Schedule, Task } from '../types'
 vi.mock('../api/client', () => ({
   syncTaskToCalendar: vi.fn().mockResolvedValue({ eventId: 'evt-1' }),
   updateTaskStatus: vi.fn().mockResolvedValue({}),
+  updateStepCompletion: vi.fn().mockResolvedValue({}),
   submitGoal: vi.fn(),
   fetchSchedule: vi.fn(),
 }))
@@ -151,6 +152,17 @@ describe('TaskDetail', () => {
   it('sync-calendar-button is hidden when googleTokens is null', () => {
     render(<TaskDetail />)
     expect(screen.queryByTestId('sync-calendar-button')).not.toBeInTheDocument()
+  })
+
+  it('checking a step checkbox calls updateTaskSteps with the correct index included', () => {
+    render(<TaskDetail />)
+    const checkbox = within(screen.getByTestId('step-item-1')).getByRole('checkbox')
+    fireEvent.click(checkbox)
+    const steps = Object.values(useAppStore.getState().schedules)
+      .flatMap((s) => s.tasks)
+      .find((t) => t.id === 'task-1')
+      ?.completedSteps
+    expect(steps).toContain(1)
   })
 
   it('sync-calendar-button is visible when googleTokens exist and calls syncTaskToCalendar', async () => {
