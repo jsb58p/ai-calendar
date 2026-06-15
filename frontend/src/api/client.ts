@@ -6,6 +6,18 @@ export type CurrentUser = {
   email: string
   displayName: string
   emailVerified: boolean
+  isAdmin?: boolean
+}
+
+export type AdminUser = {
+  id: string
+  email: string
+  displayName: string
+  emailVerified: boolean
+  isAdmin?: boolean
+  suspended?: boolean
+  createdAt: string
+  goalCount: number
 }
 
 const baseURL = import.meta.env['VITE_API_URL']
@@ -197,5 +209,50 @@ export async function syncTaskToCalendar(
     return res.data
   } catch (err) {
     throw new Error(extractMessage(err, 'Failed to sync task to calendar'))
+  }
+}
+
+// Admin API
+
+export async function fetchAdminUsers(): Promise<{ users: AdminUser[] }> {
+  try {
+    const res = await api.get<{ users: AdminUser[] }>('/admin/users')
+    return res.data
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to fetch users'))
+  }
+}
+
+export async function deleteUser(userId: string): Promise<void> {
+  try {
+    await api.delete(`/admin/users/${userId}`)
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to delete user'))
+  }
+}
+
+export async function suspendUser(userId: string): Promise<{ user: AdminUser }> {
+  try {
+    const res = await api.patch<{ user: AdminUser }>(`/admin/users/${userId}/suspend`)
+    return res.data
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to suspend user'))
+  }
+}
+
+export async function resetUserPassword(userId: string): Promise<void> {
+  try {
+    await api.patch(`/admin/users/${userId}/reset-password`)
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to reset password'))
+  }
+}
+
+export async function toggleUserAdmin(userId: string): Promise<{ user: AdminUser }> {
+  try {
+    const res = await api.patch<{ user: AdminUser }>(`/admin/users/${userId}/toggle-admin`)
+    return res.data
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to toggle admin status'))
   }
 }

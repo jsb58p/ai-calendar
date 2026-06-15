@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import type { Request, Response, NextFunction } from 'express'
 import type { AuthTokenPayload } from '../models/types'
+import { getUserById } from '../services/db'
 
 declare global {
   namespace Express {
@@ -39,35 +40,51 @@ export function clearAuthCookie(res: Response): void {
   })
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
   const secret = process.env['JWT_SECRET']
   if (!secret) throw new Error('JWT_SECRET not set')
+
+  let decoded: AuthTokenPayload
 
   // Authorization header takes priority (production cross-origin — cookies blocked)
   const authHeader = req.headers.authorization
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7)
     try {
-      const decoded = jwt.verify(token, secret)
-      req.user = decoded as AuthTokenPayload
-      next()
+      decoded = jwt.verify(token, secret) as AuthTokenPayload
     } catch {
       res.status(401).json({ error: 'Invalid or expired session' })
+      return
     }
+  } else {
+    // Cookie fallback (development same-origin)
+    const token: string | undefined = req.cookies?.['auth_token']
+    if (!token) {
+      res.status(401).json({ error: 'Authentication required' })
+      return
+    }
+    try {
+      decoded = jwt.verify(token, secret) as AuthTokenPayload
+    } catch {
+      res.status(401).json({ error: 'Invalid or expired session' })
+      return
+    }
+  }
+
+  const user = await getUserById(decoded.userId)
+  if (user?.suspended) {
+    res.status(403).json({ error: 'Account suspended' })
     return
   }
 
-  // Cookie fallback (development same-origin)
-  const token: string | undefined = req.cookies?.['auth_token']
-  if (!token) {
-    res.status(401).json({ error: 'Authentication required' })
+  req.user = decoded
+  next()
+}
+
+export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
+  if (!req.user?.isAdmin) {
+    res.status(403).json({ error: 'Admin access required' })
     return
   }
-  try {
-    const decoded = jwt.verify(token, secret)
-    req.user = decoded as AuthTokenPayload
-    next()
-  } catch {
-    res.status(401).json({ error: 'Invalid or expired session' })
-  }
+  next()
 }

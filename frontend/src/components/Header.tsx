@@ -19,6 +19,7 @@ export function Header() {
   const isAuthenticated        = useAppStore((s) => s.isAuthenticated)
   const setSettingsPanelOpen  = useAppStore((s) => s.setSettingsPanelOpen)
   const setGoalSwitcherOpen   = useAppStore((s) => s.setGoalSwitcherOpen)
+  const setAdminPanelOpen     = useAppStore((s) => s.setAdminPanelOpen)
   const setGoogleTokens       = useAppStore((s) => s.setGoogleTokens)
 
   const initials = currentUser
@@ -106,6 +107,18 @@ export function Header() {
 
       {/* Right: actions */}
       <div className="flex-shrink-0" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {currentUser?.isAdmin && (
+          <button
+            data-testid="admin-panel-button"
+            onClick={() => setAdminPanelOpen(true)}
+            style={{ background: '#3b0764', border: '1px solid #7c3aed', borderRadius: '6px', padding: '6px 10px', color: '#c4b5fd', cursor: 'pointer', fontSize: '13px' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#4c0a87' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#3b0764' }}
+          >
+            Admin
+          </button>
+        )}
+
         <button
           data-testid="settings-button"
           onClick={() => setSettingsPanelOpen(true)}

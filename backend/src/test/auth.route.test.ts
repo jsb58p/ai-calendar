@@ -292,7 +292,8 @@ describe('GET /api/auth/users/verify-email', () => {
 
 describe('GET /api/auth/users/me', () => {
   it('14: valid auth_token cookie returns 200 with user object', async () => {
-    vi.mocked(getUserById).mockResolvedValueOnce(MOCK_USER)
+    // requireAuth calls getUserById for suspended check, then /me handler calls it again
+    vi.mocked(getUserById).mockResolvedValue(MOCK_USER)
 
     const res = await request(app)
       .get('/api/auth/users/me')
@@ -328,7 +329,8 @@ describe('GET /api/auth/users/me', () => {
   })
 
   it('17: Authorization Bearer header authenticates without cookie', async () => {
-    vi.mocked(getUserById).mockResolvedValueOnce(MOCK_USER)
+    // requireAuth calls getUserById for suspended check, then /me handler calls it again
+    vi.mocked(getUserById).mockResolvedValue(MOCK_USER)
 
     const res = await request(app)
       .get('/api/auth/users/me')

@@ -19,7 +19,7 @@ import type { User } from '../models/types'
 export const authUsersRouter = Router()
 
 function safeUser(user: User) {
-  return { id: user.id, email: user.email, displayName: user.displayName, emailVerified: user.emailVerified }
+  return { id: user.id, email: user.email, displayName: user.displayName, emailVerified: user.emailVerified, isAdmin: user.isAdmin }
 }
 
 // POST /register
@@ -61,7 +61,7 @@ authUsersRouter.post('/register', async (req: Request, res: Response, next: Next
     await saveUser(user)
     await sendVerificationEmail(email, user.displayName, verificationToken)
 
-    const token = generateToken({ userId: user.id, email: user.email })
+    const token = generateToken({ userId: user.id, email: user.email, ...(user.isAdmin && { isAdmin: true }) })
     setAuthCookie(res, token)
 
     res.status(201).json({
@@ -101,7 +101,7 @@ authUsersRouter.post('/login', async (req: Request, res: Response, next: NextFun
       return
     }
 
-    const token = generateToken({ userId: user.id, email: user.email })
+    const token = generateToken({ userId: user.id, email: user.email, ...(user.isAdmin && { isAdmin: true }) })
     setAuthCookie(res, token)
 
     res.status(200).json({ user: safeUser(user), token })
@@ -200,7 +200,7 @@ authUsersRouter.get('/google/callback', async (req: Request, res: Response, next
       }
     }
 
-    const token = generateToken({ userId: user.id, email: user.email })
+    const token = generateToken({ userId: user.id, email: user.email, ...(user.isAdmin && { isAdmin: true }) })
     setAuthCookie(res, token)
     res.redirect(`${frontendUrl}?auth_token=${token}`)
   } catch (err) {

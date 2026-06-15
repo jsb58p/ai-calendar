@@ -18,6 +18,7 @@ import { GoalSwitcher } from './components/GoalSwitcher/GoalSwitcher'
 import { GoogleConnectPrompt } from './components/GoogleConnectPrompt'
 import { LoginPage } from './components/Auth/LoginPage'
 import { EmailVerified } from './components/Auth/EmailVerified'
+import { AdminPanel } from './components/Admin/AdminPanel'
 
 const queryClient = new QueryClient()
 
@@ -280,6 +281,7 @@ function AppContent() {
       <SettingsPanel isOpen={isSettingsPanelOpen} onClose={() => setSettingsPanelOpen(false)} />
       <GoalSwitcher isOpen={isGoalSwitcherOpen} onClose={() => setGoalSwitcherOpen(false)} />
       <GoogleConnectPrompt isOpen={showGooglePrompt} onClose={handleCloseGooglePrompt} />
+      <AdminPanel />
     </div>
   )
 }

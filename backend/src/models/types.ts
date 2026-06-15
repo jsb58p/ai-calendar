@@ -45,12 +45,16 @@ export interface User {
   displayName: string
   emailVerified: boolean
   verificationToken?: string
+  passwordResetToken?: string
+  isAdmin?: boolean
+  suspended?: boolean
   createdAt: string
 }
 
 export interface AuthTokenPayload {
   userId: string
   email: string
+  isAdmin?: boolean
 }
 
 export interface DBSchema {

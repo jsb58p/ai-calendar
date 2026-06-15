@@ -9,6 +9,7 @@ import { feedbackRouter } from './routes/feedback'
 import { authRouter } from './routes/auth'
 import { authUsersRouter } from './routes/auth-users'
 import { calendarRouter } from './routes/calendar'
+import { adminRouter } from './routes/admin'
 
 const app = express()
 
@@ -28,6 +29,7 @@ app.use('/api/feedback', feedbackRouter)
 app.use('/api/auth', authRouter)
 app.use('/api/auth/users', authUsersRouter)
 app.use('/api/calendar', calendarRouter)
+app.use('/api/admin', adminRouter)
 
 app.use(errorHandler)
 

@@ -23,6 +23,7 @@ interface AppState {
   isHistoryPanelOpen: boolean
   isSettingsPanelOpen: boolean
   isGoalSwitcherOpen: boolean
+  isAdminPanelOpen: boolean
   settings: UserSettings
   hasSeenGooglePrompt: boolean
 }
@@ -50,6 +51,7 @@ interface AppActions {
   setHistoryPanelOpen: (v: boolean) => void
   setSettingsPanelOpen: (v: boolean) => void
   setGoalSwitcherOpen: (v: boolean) => void
+  setAdminPanelOpen: (v: boolean) => void
   removeGoal: (goalId: string) => void
   updateSettings: (patch: Partial<UserSettings>) => void
   resetSettings: () => void
@@ -76,6 +78,7 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   isHistoryPanelOpen: false,
   isSettingsPanelOpen: false,
   isGoalSwitcherOpen: false,
+  isAdminPanelOpen: false,
   settings: DEFAULT_SETTINGS,
   hasSeenGooglePrompt: false,
 
@@ -159,6 +162,7 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   setSettingsPanelOpen: (isSettingsPanelOpen) => set({ isSettingsPanelOpen }),
 
   setGoalSwitcherOpen: (isGoalSwitcherOpen) => set({ isGoalSwitcherOpen }),
+  setAdminPanelOpen: (isAdminPanelOpen) => set({ isAdminPanelOpen }),
 
   removeGoal: (goalId) =>
     set((s) => {
