@@ -2,15 +2,19 @@ import { Router } from 'express'
 import type { Request, Response, NextFunction } from 'express'
 import { getDb, getSchedule, saveSchedule } from '../services/db'
 import { createCalendarEvent } from '../services/googleCalendar'
+import { requireAuth } from '../middleware/auth'
 import type { Schedule } from '../models/types'
 
 export const calendarRouter = Router()
+
+calendarRouter.use(requireAuth)
 
 // POST /api/calendar/sync
 calendarRouter.post('/sync', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const body = req.body as Record<string, unknown>
     const { taskId, access_token, refresh_token } = body
+    const userId = req.user!.userId
 
     if (!taskId || typeof taskId !== 'string') {
       res.status(400).json({ error: 'taskId is required' })
@@ -27,7 +31,7 @@ calendarRouter.post('/sync', async (req: Request, res: Response, next: NextFunct
 
     const doc = await getDb()
       .collection('schedules')
-      .findOne({ 'tasks.id': taskId }, { projection: { _id: 0 } })
+      .findOne({ 'tasks.id': taskId, userId }, { projection: { _id: 0, userId: 0 } })
     const foundSchedule = doc as Schedule | null
 
     if (!foundSchedule) {
@@ -45,7 +49,7 @@ calendarRouter.post('/sync', async (req: Request, res: Response, next: NextFunct
         t.id === taskId ? { ...t, googleCalendarEventId: eventId } : t
       ),
     }
-    await saveSchedule(updatedSchedule)
+    await saveSchedule(updatedSchedule, userId)
 
     res.status(200).json({ eventId })
   } catch (err) {
@@ -58,6 +62,7 @@ calendarRouter.post('/sync-all', async (req: Request, res: Response, next: NextF
   try {
     const body = req.body as Record<string, unknown>
     const { goalId, access_token, refresh_token } = body
+    const userId = req.user!.userId
 
     if (!goalId || typeof goalId !== 'string') {
       res.status(400).json({ error: 'goalId is required' })
@@ -72,7 +77,7 @@ calendarRouter.post('/sync-all', async (req: Request, res: Response, next: NextF
       return
     }
 
-    const foundSchedule = await getSchedule(goalId)
+    const foundSchedule = await getSchedule(goalId, userId)
 
     if (!foundSchedule) {
       res.status(404).json({ error: 'Schedule not found' })
@@ -93,7 +98,7 @@ calendarRouter.post('/sync-all', async (req: Request, res: Response, next: NextF
     }
 
     const updatedSchedule: Schedule = { ...foundSchedule, tasks: updatedTasks }
-    await saveSchedule(updatedSchedule)
+    await saveSchedule(updatedSchedule, userId)
 
     res.status(200).json({ synced })
   } catch (err) {

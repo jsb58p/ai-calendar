@@ -1,4 +1,5 @@
 import { google } from 'googleapis'
+import axios from 'axios'
 import type { Task } from '../models/types'
 
 export function getOAuthClient() {
@@ -7,6 +8,41 @@ export function getOAuthClient() {
     process.env['GOOGLE_CLIENT_SECRET'],
     process.env['GOOGLE_REDIRECT_URI']
   )
+}
+
+export function getAuthOAuthClient() {
+  return new google.auth.OAuth2(
+    process.env['GOOGLE_CLIENT_ID'],
+    process.env['GOOGLE_CLIENT_SECRET'],
+    process.env['GOOGLE_AUTH_REDIRECT_URI']
+  )
+}
+
+export function getGoogleAuthUrl(): string {
+  const client = getAuthOAuthClient()
+  return client.generateAuthUrl({
+    access_type: 'online',
+    prompt: 'select_account',
+    scope: ['openid', 'email', 'profile'],
+  })
+}
+
+export async function getGoogleUserInfo(
+  code: string
+): Promise<{ googleId: string; email: string; displayName: string }> {
+  const client = getAuthOAuthClient()
+  const { tokens } = await client.getToken(code)
+
+  if (!tokens.access_token) {
+    throw new Error('Google Sign-In token exchange did not return an access token')
+  }
+
+  const { data } = await axios.get<{ sub: string; email: string; name: string }>(
+    'https://www.googleapis.com/oauth2/v3/userinfo',
+    { headers: { Authorization: `Bearer ${tokens.access_token}` } }
+  )
+
+  return { googleId: data.sub, email: data.email, displayName: data.name }
 }
 
 export function getAuthUrl(state?: string): string {

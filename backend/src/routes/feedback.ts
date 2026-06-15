@@ -3,15 +3,18 @@ import type { Request, Response, NextFunction } from 'express'
 import { v4 as uuid } from 'uuid'
 import { getSchedule, saveSchedule, saveFeedback } from '../services/db'
 import { adaptSchedule } from '../services/anthropic'
-import { updateCalendarEvent } from '../services/googleCalendar'
+import { requireAuth } from '../middleware/auth'
 import type { FeedbackEntry } from '../models/types'
 
 export const feedbackRouter = Router()
+
+feedbackRouter.use(requireAuth)
 
 feedbackRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const body = req.body as Record<string, unknown>
     const { scheduleId, rating, notes } = body
+    const userId = req.user!.userId
 
     if (!scheduleId || typeof scheduleId !== 'string') {
       res.status(400).json({ error: 'scheduleId is required' })
@@ -30,7 +33,7 @@ feedbackRouter.post('/', async (req: Request, res: Response, next: NextFunction)
       return
     }
 
-    const schedule = await getSchedule(scheduleId)
+    const schedule = await getSchedule(scheduleId, userId)
     if (schedule === undefined) {
       res.status(404).json({ error: 'Schedule not found' })
       return
@@ -45,8 +48,8 @@ feedbackRouter.post('/', async (req: Request, res: Response, next: NextFunction)
     }
 
     const adapted = await adaptSchedule(schedule, feedbackEntry)
-    await saveSchedule(adapted)
-    await saveFeedback(feedbackEntry)
+    await saveSchedule(adapted, userId)
+    await saveFeedback(feedbackEntry, userId)
 
     res.status(200).json({ adapted, changesExplained: adapted.changesExplained })
   } catch (err) {

@@ -1,5 +1,6 @@
 export interface GoalInput {
   id: string
+  userId: string
   title: string
   description: string
   targetDate: string

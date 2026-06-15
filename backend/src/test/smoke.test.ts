@@ -2,15 +2,17 @@ import { describe, it, expect } from 'vitest'
 import type { GoalInput, Task, AdaptedSchedule } from '../models/types'
 
 describe('types: GoalInput', () => {
-  it('exports GoalInput with all 5 required fields', () => {
+  it('exports GoalInput with all 6 required fields', () => {
     const goal: GoalInput = {
       id: '1',
+      userId: 'u1',
       title: 'Run a 5K',
       description: 'Train for a 5K race',
       targetDate: '2026-09-01',
       createdAt: new Date().toISOString(),
     }
     expect(goal).toHaveProperty('id')
+    expect(goal).toHaveProperty('userId')
     expect(goal).toHaveProperty('title')
     expect(goal).toHaveProperty('description')
     expect(goal).toHaveProperty('targetDate')

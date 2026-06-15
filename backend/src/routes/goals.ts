@@ -3,25 +3,24 @@ import type { Request, Response, NextFunction } from 'express'
 import { v4 as uuid } from 'uuid'
 import {
   saveGoal,
-  getGoal,
   saveSchedule,
   getSchedule,
-  saveFeedback,
-  getFeedbackForSchedule,
   saveSettings,
   getAllGoals,
 } from '../services/db'
 import { generateSchedule } from '../services/anthropic'
-import { createCalendarEvent } from '../services/googleCalendar'
-import type { GoalInput, Task, Schedule, FeedbackEntry, AdaptedSchedule, UserSettings } from '../models/types'
+import { requireAuth } from '../middleware/auth'
+import type { GoalInput, Task, Schedule, UserSettings } from '../models/types'
 import { DEFAULT_SETTINGS } from '../models/types'
 
 export const goalsRouter = Router()
 
+goalsRouter.use(requireAuth)
+
 // GET /api/goals
-goalsRouter.get('/', async (_req: Request, res: Response, next: NextFunction) => {
+goalsRouter.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const goals = await getAllGoals()
+    const goals = await getAllGoals(req.user!.userId)
     res.json({ goals })
   } catch (err) {
     next(err)
@@ -31,8 +30,7 @@ goalsRouter.get('/', async (_req: Request, res: Response, next: NextFunction) =>
 // GET /api/goals/:id/schedule
 goalsRouter.get('/:id/schedule', async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params
-    const schedule = await getSchedule(id)
+    const schedule = await getSchedule(req.params.id, req.user!.userId)
     if (schedule === undefined) {
       res.status(404).json({ error: 'Schedule not found' })
       return
@@ -49,6 +47,7 @@ goalsRouter.patch(
   async (req: Request<{ goalId: string; taskId: string }>, res: Response, next: NextFunction) => {
     try {
       const { goalId, taskId } = req.params
+      const userId = req.user!.userId
       const { status } = req.body as Record<string, unknown>
 
       const validStatuses = ['pending', 'complete', 'skipped'] as const
@@ -57,7 +56,7 @@ goalsRouter.patch(
         return
       }
 
-      const schedule = await getSchedule(goalId)
+      const schedule = await getSchedule(goalId, userId)
       if (schedule === undefined) {
         res.status(404).json({ error: 'Schedule not found' })
         return
@@ -70,12 +69,12 @@ goalsRouter.patch(
       }
 
       const updatedTask: Task = { ...schedule.tasks[taskIndex]!, status: status as Task['status'] }
-      const updatedSchedule = {
+      const updatedSchedule: Schedule = {
         ...schedule,
         tasks: schedule.tasks.map((t, i) => (i === taskIndex ? updatedTask : t)),
       }
 
-      await saveSchedule(updatedSchedule)
+      await saveSchedule(updatedSchedule, userId)
       res.status(200).json(updatedTask)
     } catch (err) {
       next(err)
@@ -89,6 +88,7 @@ goalsRouter.patch(
   async (req: Request<{ goalId: string; taskId: string }>, res: Response, next: NextFunction) => {
     try {
       const { goalId, taskId } = req.params
+      const userId = req.user!.userId
       const { completedSteps } = req.body as Record<string, unknown>
 
       if (
@@ -99,7 +99,7 @@ goalsRouter.patch(
         return
       }
 
-      const schedule = await getSchedule(goalId)
+      const schedule = await getSchedule(goalId, userId)
       if (schedule === undefined) {
         res.status(404).json({ error: 'Schedule not found' })
         return
@@ -112,12 +112,12 @@ goalsRouter.patch(
       }
 
       const updatedTask: Task = { ...schedule.tasks[taskIndex]!, completedSteps }
-      const updatedSchedule = {
+      const updatedSchedule: Schedule = {
         ...schedule,
         tasks: schedule.tasks.map((t, i) => (i === taskIndex ? updatedTask : t)),
       }
 
-      await saveSchedule(updatedSchedule)
+      await saveSchedule(updatedSchedule, userId)
       res.status(200).json(updatedTask)
     } catch (err) {
       next(err)
@@ -146,6 +146,7 @@ goalsRouter.post('/', async (req: Request, res: Response, next: NextFunction) =>
   try {
     const body = req.body as Record<string, unknown>
     const { title, description, targetDate, settings: rawSettings } = body
+    const userId = req.user!.userId
 
     if (!title || typeof title !== 'string') {
       res.status(400).json({ error: 'title is required' })
@@ -177,14 +178,15 @@ goalsRouter.post('/', async (req: Request, res: Response, next: NextFunction) =>
 
     const goal: GoalInput = {
       id: uuid(),
+      userId,
       title,
       description,
       targetDate,
       createdAt: new Date().toISOString(),
     }
 
-    await saveGoal(goal)
-    await saveSettings(goal.id, settings ?? DEFAULT_SETTINGS)
+    await saveGoal(goal, userId)
+    await saveSettings(goal.id, settings ?? DEFAULT_SETTINGS, userId)
 
     let schedule: Schedule
     try {
@@ -194,7 +196,7 @@ goalsRouter.post('/', async (req: Request, res: Response, next: NextFunction) =>
       return
     }
 
-    await saveSchedule(schedule)
+    await saveSchedule(schedule, userId)
 
     res.status(201).json({ goal, schedule })
   } catch (err) {

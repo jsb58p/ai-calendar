@@ -63,6 +63,13 @@ vi.mock('mongodb', () => {
       get(this.name).push({ ...doc })
       return { insertedId: 'mock' }
     }
+
+    async updateOne(filter: any, update: any) {
+      const coll = get(this.name)
+      const idx = coll.findIndex((d) => match(d, filter))
+      if (idx !== -1) Object.assign(coll[idx], update['$set'] ?? {})
+      return {}
+    }
   }
 
   class MockDb {
@@ -97,8 +104,11 @@ import {
 // Fixtures
 // ---------------------------------------------------------------------------
 
+const USER_ID = 'u1'
+
 const GOAL: GoalInput = {
   id: 'g1',
+  userId: USER_ID,
   title: 'Learn TypeScript',
   description: 'Complete a TypeScript course and build a project',
   targetDate: '2026-09-01',
@@ -146,26 +156,26 @@ describe('db service', () => {
   })
 
   it('saveGoal then getGoal returns the same object', async () => {
-    await saveGoal(GOAL)
-    const result = await getGoal(GOAL.id)
+    await saveGoal(GOAL, USER_ID)
+    const result = await getGoal(GOAL.id, USER_ID)
     expect(result).toEqual(GOAL)
   })
 
   it('saveSchedule then getSchedule returns the same object', async () => {
-    await saveSchedule(SCHEDULE)
-    const result = await getSchedule(SCHEDULE.goalId)
+    await saveSchedule(SCHEDULE, USER_ID)
+    const result = await getSchedule(SCHEDULE.goalId, USER_ID)
     expect(result).toEqual(SCHEDULE)
   })
 
   it('getSchedule with an unknown goalId returns undefined and does not throw', async () => {
-    const result = await getSchedule('does-not-exist')
+    const result = await getSchedule('does-not-exist', USER_ID)
     expect(result).toBeUndefined()
   })
 
   it('saveFeedback then getFeedbackForSchedule returns an array containing the entry', async () => {
     const entry = makeFeedback('fb1')
-    await saveFeedback(entry)
-    const results = await getFeedbackForSchedule(entry.scheduleId)
+    await saveFeedback(entry, USER_ID)
+    const results = await getFeedbackForSchedule(entry.scheduleId, USER_ID)
     expect(results).toHaveLength(1)
     expect(results[0]).toEqual(entry)
   })
@@ -173,11 +183,23 @@ describe('db service', () => {
   it('multiple feedback entries for the same scheduleId are all returned', async () => {
     const entry1 = makeFeedback('fb1', { rating: 5, notes: 'Great pace' })
     const entry2 = makeFeedback('fb2', { rating: 2, notes: 'Too hard' })
-    await saveFeedback(entry1)
-    await saveFeedback(entry2)
-    const results = await getFeedbackForSchedule('g1')
+    await saveFeedback(entry1, USER_ID)
+    await saveFeedback(entry2, USER_ID)
+    const results = await getFeedbackForSchedule('g1', USER_ID)
     expect(results).toHaveLength(2)
     expect(results.map((f) => f.id)).toContain('fb1')
     expect(results.map((f) => f.id)).toContain('fb2')
+  })
+
+  it('getGoal with wrong userId returns undefined (data isolation)', async () => {
+    await saveGoal(GOAL, USER_ID)
+    const result = await getGoal(GOAL.id, 'other-user')
+    expect(result).toBeUndefined()
+  })
+
+  it('getSchedule with wrong userId returns undefined (data isolation)', async () => {
+    await saveSchedule(SCHEDULE, USER_ID)
+    const result = await getSchedule(SCHEDULE.goalId, 'other-user')
+    expect(result).toBeUndefined()
   })
 })

@@ -1,5 +1,6 @@
 export interface GoalInput {
   id: string
+  userId: string
   title: string
   description: string
   targetDate: string
@@ -36,11 +37,28 @@ export interface AdaptedSchedule extends Schedule {
   changesExplained: string
 }
 
+export interface User {
+  id: string
+  email: string
+  passwordHash?: string
+  googleId?: string
+  displayName: string
+  emailVerified: boolean
+  verificationToken?: string
+  createdAt: string
+}
+
+export interface AuthTokenPayload {
+  userId: string
+  email: string
+}
+
 export interface DBSchema {
   goals: GoalInput[]
   schedules: Schedule[]
   feedback: FeedbackEntry[]
   settings: Record<string, UserSettings>
+  users: User[]
 }
 
 export interface UserSettings {

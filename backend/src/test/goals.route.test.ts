@@ -2,6 +2,13 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
 import express from 'express'
 
+vi.mock('../middleware/auth', () => ({
+  requireAuth: (req: any, _res: any, next: any) => {
+    req.user = { userId: 'test-user-id', email: 'test@example.com' }
+    next()
+  },
+}))
+
 vi.mock('../services/db', () => ({
   initDb: vi.fn().mockResolvedValue(undefined),
   getDb: vi.fn().mockReturnValue({}),
@@ -72,6 +79,7 @@ describe('POST /api/goals', () => {
     expect(res.body).toHaveProperty('goal')
     expect(res.body).toHaveProperty('schedule')
     expect(res.body.goal.title).toBe('Run a 5K')
+    expect(res.body.goal.userId).toBe('test-user-id')
     expect(res.body.schedule).toEqual(MOCK_SCHEDULE)
   })
 

@@ -1,15 +1,18 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import { initDb } from './services/db'
 import { errorHandler } from './middleware/errorHandler'
 import { goalsRouter } from './routes/goals'
 import { feedbackRouter } from './routes/feedback'
 import { authRouter } from './routes/auth'
+import { authUsersRouter } from './routes/auth-users'
 import { calendarRouter } from './routes/calendar'
 
 const app = express()
 
+app.use(cookieParser())
 app.use(express.json())
 const allowedOrigins = [
   'http://localhost:5173',
@@ -23,6 +26,7 @@ app.use(cors({ origin: allowedOrigins, credentials: true }))
 app.use('/api/goals', goalsRouter)
 app.use('/api/feedback', feedbackRouter)
 app.use('/api/auth', authRouter)
+app.use('/api/auth/users', authUsersRouter)
 app.use('/api/calendar', calendarRouter)
 
 app.use(errorHandler)
