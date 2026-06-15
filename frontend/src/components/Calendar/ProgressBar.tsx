@@ -14,21 +14,21 @@ export function ProgressBar({ schedule }: Props) {
   return (
     <div
       data-testid="progress-bar-container"
-      className="bg-bg-surface border-b border-border-default px-6 py-2 flex items-center gap-4"
+      className="flex items-center gap-4 px-6 py-2 bg-bg-surface border-b border-border-default"
     >
-      <span data-testid="progress-text" className="text-text-muted text-xs font-mono flex-shrink-0">
+      <span data-testid="progress-text" className="text-zinc-400 text-xs font-mono flex-shrink-0">
         {completed} / {total} complete
       </span>
 
-      <div className="flex-1 bg-bg-muted rounded-full h-1.5 overflow-hidden">
+      <div className="flex-1 bg-zinc-800 rounded-full h-2 overflow-hidden">
         <div
           data-testid="progress-bar-fill"
-          className="bg-accent rounded-full h-full transition-all duration-500"
+          className="h-full bg-green-500 rounded-full transition-all duration-700 ease-out"
           style={{ width: `${percentComplete}%` }}
         />
       </div>
 
-      <span data-testid="progress-percent" className="text-text-muted text-xs font-mono flex-shrink-0">
+      <span data-testid="progress-percent" className="text-zinc-400 text-xs font-mono flex-shrink-0">
         {percentComplete}%
       </span>
 
