@@ -1,85 +1,79 @@
-import { Low } from 'lowdb'
-import { JSONFile } from 'lowdb/node'
+import { MongoClient, Db } from 'mongodb'
 import { v4 as uuidv4 } from 'uuid'
-import type { DBSchema, GoalInput, Schedule, FeedbackEntry, UserSettings } from '../models/types'
-import path from 'node:path'
+import type { GoalInput, Schedule, FeedbackEntry, UserSettings } from '../models/types'
 
-const DB_PATH = path.resolve('db.json')
-const defaultData: DBSchema = { goals: [], schedules: [], feedback: [], settings: {} }
-
-let db: Low<DBSchema> | null = null
+let mongoClient: MongoClient | null = null
+let database: Db | null = null
 
 export async function initDb(): Promise<void> {
-  const adapter = new JSONFile<DBSchema>(DB_PATH)
-  db = new Low<DBSchema>(adapter, structuredClone(defaultData))
-  await db.read()
-  // Migrate existing databases that predate the settings field
-  if (!db.data.settings) {
-    db.data.settings = {}
-    await db.write()
-  }
+  const uri = process.env['MONGODB_URI']
+  if (!uri) throw new Error('MONGODB_URI environment variable is required')
+  mongoClient = new MongoClient(uri)
+  await mongoClient.connect()
+  database = mongoClient.db('schedulerAI')
+  await database.collection('goals').createIndex({ id: 1 }, { unique: true })
+  await database.collection('schedules').createIndex({ goalId: 1 }, { unique: true })
+  await database.collection('feedback').createIndex({ scheduleId: 1 })
 }
 
-export function getDb(): Low<DBSchema> {
-  if (!db) throw new Error('Database not initialized — call initDb() before use')
-  return db
+export function getDb(): Db {
+  if (!database) throw new Error('Database not initialized — call initDb() before use')
+  return database
 }
 
 export async function saveGoal(goal: GoalInput): Promise<void> {
-  const database = getDb()
-  await database.read()
-  database.data.goals.push(goal)
-  await database.write()
+  await getDb().collection('goals').replaceOne({ id: goal.id }, { ...goal }, { upsert: true })
 }
 
 export async function getGoal(id: string): Promise<GoalInput | undefined> {
-  const database = getDb()
-  await database.read()
-  return database.data.goals.find((g) => g.id === id)
+  const doc = await getDb().collection('goals').findOne({ id }, { projection: { _id: 0 } })
+  return (doc as GoalInput | null) ?? undefined
 }
 
 export async function saveSchedule(schedule: Schedule): Promise<void> {
-  const database = getDb()
-  await database.read()
-  const index = database.data.schedules.findIndex((s) => s.goalId === schedule.goalId)
-  if (index !== -1) {
-    database.data.schedules.splice(index, 1, schedule)
-  } else {
-    database.data.schedules.push(schedule)
-  }
-  await database.write()
+  await getDb()
+    .collection('schedules')
+    .replaceOne({ goalId: schedule.goalId }, { ...schedule }, { upsert: true })
 }
 
 export async function getSchedule(goalId: string): Promise<Schedule | undefined> {
-  const database = getDb()
-  await database.read()
-  return database.data.schedules.find((s) => s.goalId === goalId)
+  const doc = await getDb()
+    .collection('schedules')
+    .findOne({ goalId }, { projection: { _id: 0 } })
+  return (doc as Schedule | null) ?? undefined
 }
 
 export async function saveFeedback(entry: FeedbackEntry): Promise<void> {
-  const database = getDb()
-  await database.read()
-  database.data.feedback.push(entry)
-  await database.write()
+  await getDb().collection('feedback').insertOne({ ...entry })
 }
 
 export async function getFeedbackForSchedule(scheduleId: string): Promise<FeedbackEntry[]> {
-  const database = getDb()
-  await database.read()
-  return database.data.feedback.filter((f) => f.scheduleId === scheduleId)
+  const docs = await getDb()
+    .collection('feedback')
+    .find({ scheduleId }, { projection: { _id: 0 } })
+    .toArray()
+  return docs as FeedbackEntry[]
 }
 
 export async function saveSettings(goalId: string, settings: UserSettings): Promise<void> {
-  const database = getDb()
-  await database.read()
-  database.data.settings[goalId] = settings
-  await database.write()
+  await getDb()
+    .collection('settings')
+    .replaceOne({ goalId }, { goalId, ...settings }, { upsert: true })
 }
 
 export async function getSettings(goalId: string): Promise<UserSettings | undefined> {
-  const database = getDb()
-  await database.read()
-  return database.data.settings[goalId]
+  const doc = await getDb()
+    .collection('settings')
+    .findOne({ goalId }, { projection: { _id: 0, goalId: 0 } })
+  return (doc as UserSettings | null) ?? undefined
+}
+
+export async function getAllGoals(): Promise<GoalInput[]> {
+  const docs = await getDb()
+    .collection('goals')
+    .find({}, { projection: { _id: 0 } })
+    .toArray()
+  return docs as GoalInput[]
 }
 
 export { uuidv4 }

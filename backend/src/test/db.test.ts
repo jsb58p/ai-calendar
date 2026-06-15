@@ -1,13 +1,86 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { GoalInput, Schedule, Task, FeedbackEntry } from '../models/types'
 
-// Replace JSONFile with lowdb's in-memory adapter so no db.json is written.
-// Memory ignores its constructor argument, so new JSONFile(path) becomes
-// new Memory(path) — the path is silently discarded.
-// Each initDb() call creates a fresh Low + new Memory instance → clean slate.
-vi.mock('lowdb/node', async () => {
-  const { Memory } = await import('lowdb')
-  return { JSONFile: Memory }
+// Shared in-memory store — hoisted so it's accessible inside the vi.mock factory
+const store = vi.hoisted((): Record<string, any[]> => ({}))
+
+vi.mock('mongodb', () => {
+  function get(name: string): any[] {
+    if (!store[name]) store[name] = []
+    return store[name]
+  }
+
+  function project(doc: any, projection?: Record<string, 0 | 1>): any {
+    if (!projection) return { ...doc }
+    const out = { ...doc }
+    for (const [k, v] of Object.entries(projection)) {
+      if (v === 0) delete out[k]
+    }
+    return out
+  }
+
+  function match(doc: any, filter: Record<string, any>): boolean {
+    return Object.entries(filter).every(([k, v]) => doc[k] === v)
+  }
+
+  class MockCollection {
+    private name: string
+    constructor(name: string) {
+      this.name = name
+    }
+
+    createIndex() {
+      return Promise.resolve('idx')
+    }
+
+    async findOne(filter: any, opts?: { projection?: Record<string, 0 | 1> }) {
+      const found = get(this.name).find((d) => match(d, filter))
+      return found ? project(found, opts?.projection) : null
+    }
+
+    find(filter: any, opts?: { projection?: Record<string, 0 | 1> }) {
+      return {
+        toArray: async () => {
+          const coll = get(this.name)
+          const hits =
+            Object.keys(filter).length === 0
+              ? coll
+              : coll.filter((d) => match(d, filter))
+          return hits.map((d) => project(d, opts?.projection))
+        },
+      }
+    }
+
+    async replaceOne(filter: any, doc: any, opts?: { upsert?: boolean }) {
+      const coll = get(this.name)
+      const idx = coll.findIndex((d) => match(d, filter))
+      if (idx !== -1) coll[idx] = { ...doc }
+      else if (opts?.upsert) coll.push({ ...doc })
+      return {}
+    }
+
+    async insertOne(doc: any) {
+      get(this.name).push({ ...doc })
+      return { insertedId: 'mock' }
+    }
+  }
+
+  class MockDb {
+    collection(name: string) {
+      return new MockCollection(name)
+    }
+  }
+
+  class MockMongoClient {
+    connect() {
+      return Promise.resolve()
+    }
+    db() {
+      return new MockDb()
+    }
+  }
+
+  return { MongoClient: MockMongoClient }
 })
 
 import {
@@ -65,7 +138,10 @@ function makeFeedback(id: string, overrides?: Partial<FeedbackEntry>): FeedbackE
 
 describe('db service', () => {
   beforeEach(async () => {
-    // Re-initialise creates a new Low<DBSchema> with a fresh Memory adapter
+    Object.keys(store).forEach((k) => {
+      delete store[k]
+    })
+    process.env['MONGODB_URI'] = 'mongodb://localhost/test'
     await initDb()
   })
 

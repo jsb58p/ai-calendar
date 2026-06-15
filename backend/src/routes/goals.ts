@@ -9,11 +9,11 @@ import {
   saveFeedback,
   getFeedbackForSchedule,
   saveSettings,
-  getDb,
+  getAllGoals,
 } from '../services/db'
 import { generateSchedule } from '../services/anthropic'
 import { createCalendarEvent } from '../services/googleCalendar'
-import type { GoalInput, Task, Schedule, FeedbackEntry, AdaptedSchedule, DBSchema, UserSettings } from '../models/types'
+import type { GoalInput, Task, Schedule, FeedbackEntry, AdaptedSchedule, UserSettings } from '../models/types'
 import { DEFAULT_SETTINGS } from '../models/types'
 
 export const goalsRouter = Router()
@@ -21,9 +21,8 @@ export const goalsRouter = Router()
 // GET /api/goals
 goalsRouter.get('/', async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const db = getDb()
-    await db.read()
-    res.json({ goals: db.data.goals })
+    const goals = await getAllGoals()
+    res.json({ goals })
   } catch (err) {
     next(err)
   }

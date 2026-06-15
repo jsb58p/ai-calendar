@@ -1,7 +1,8 @@
 import { Router } from 'express'
 import type { Request, Response, NextFunction } from 'express'
-import { getDb, saveSchedule } from '../services/db'
+import { getDb, getSchedule, saveSchedule } from '../services/db'
 import { createCalendarEvent } from '../services/googleCalendar'
+import type { Schedule } from '../models/types'
 
 export const calendarRouter = Router()
 
@@ -24,12 +25,10 @@ calendarRouter.post('/sync', async (req: Request, res: Response, next: NextFunct
       return
     }
 
-    const db = getDb()
-    await db.read()
-
-    const foundSchedule = db.data.schedules.find((s) =>
-      s.tasks.some((t) => t.id === taskId)
-    )
+    const doc = await getDb()
+      .collection('schedules')
+      .findOne({ 'tasks.id': taskId }, { projection: { _id: 0 } })
+    const foundSchedule = doc as Schedule | null
 
     if (!foundSchedule) {
       res.status(404).json({ error: 'Task not found' })
@@ -40,7 +39,7 @@ calendarRouter.post('/sync', async (req: Request, res: Response, next: NextFunct
 
     const eventId = await createCalendarEvent(access_token, refresh_token, task)
 
-    const updatedSchedule = {
+    const updatedSchedule: Schedule = {
       ...foundSchedule,
       tasks: foundSchedule.tasks.map((t) =>
         t.id === taskId ? { ...t, googleCalendarEventId: eventId } : t
@@ -73,10 +72,7 @@ calendarRouter.post('/sync-all', async (req: Request, res: Response, next: NextF
       return
     }
 
-    const db = getDb()
-    await db.read()
-
-    const foundSchedule = db.data.schedules.find((s) => s.goalId === goalId)
+    const foundSchedule = await getSchedule(goalId)
 
     if (!foundSchedule) {
       res.status(404).json({ error: 'Schedule not found' })
@@ -96,7 +92,7 @@ calendarRouter.post('/sync-all', async (req: Request, res: Response, next: NextF
       }
     }
 
-    const updatedSchedule = { ...foundSchedule, tasks: updatedTasks }
+    const updatedSchedule: Schedule = { ...foundSchedule, tasks: updatedTasks }
     await saveSchedule(updatedSchedule)
 
     res.status(200).json({ synced })

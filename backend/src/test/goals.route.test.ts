@@ -4,10 +4,8 @@ import express from 'express'
 
 vi.mock('../services/db', () => ({
   initDb: vi.fn().mockResolvedValue(undefined),
-  getDb: vi.fn().mockReturnValue({
-    read: vi.fn().mockResolvedValue(undefined),
-    data: { goals: [] },
-  }),
+  getDb: vi.fn().mockReturnValue({}),
+  getAllGoals: vi.fn().mockResolvedValue([]),
   saveGoal: vi.fn().mockResolvedValue(undefined),
   getGoal: vi.fn(),
   saveSchedule: vi.fn().mockResolvedValue(undefined),
