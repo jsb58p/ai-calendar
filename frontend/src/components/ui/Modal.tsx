@@ -44,13 +44,13 @@ export default function Modal({
         className="w-full max-w-[600px] bg-bg-elevated border border-border-default rounded-xl shadow-elevated flex flex-col animate-fade-in max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center px-8 py-5 border-b border-border-default">
+        <div className="flex justify-between items-center px-10 py-5 border-b border-border-default flex-shrink-0">
           <h2 data-testid={titleTestId} className="text-text-primary font-semibold">{title}</h2>
           <Button data-testid={closeTestId} variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
             ✕
           </Button>
         </div>
-        <div className="px-8 py-6">{children}</div>
+        <div className="px-10 py-6 overflow-y-auto flex-1">{children}</div>
       </div>
     </div>
   )
