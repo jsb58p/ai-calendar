@@ -80,7 +80,7 @@ export function GoalInput() {
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto animate-fade-in">
+    <div className="w-full max-w-lg mx-auto animate-fade-in px-4 sm:px-0">
       {/* Header */}
       <div className="mb-8">
         <p className="text-accent font-mono text-xs font-medium tracking-widest uppercase mb-2">

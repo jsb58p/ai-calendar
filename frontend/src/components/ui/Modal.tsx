@@ -47,13 +47,13 @@ export default function Modal({
         style={{ maxWidth }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center p-5 border-b border-border-default">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-border-default">
           <h2 data-testid={titleTestId} className="text-text-primary font-semibold">{title}</h2>
           <Button data-testid={closeTestId} variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
             ✕
           </Button>
         </div>
-        <div className="p-5">{children}</div>
+        <div className="px-6 py-5">{children}</div>
       </div>
     </div>
   )

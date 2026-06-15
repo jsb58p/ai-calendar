@@ -31,7 +31,7 @@ export function StarRating({ value, onChange }: Props) {
   }
 
   return (
-    <div role="radiogroup" aria-label="Rate your schedule effectiveness" className="flex gap-2 items-center">
+    <div role="radiogroup" aria-label="Rate your schedule effectiveness" className="flex gap-3 items-center">
       {[1, 2, 3, 4, 5].map((n) => {
         const filled = n <= fillUpTo
         return (
@@ -46,14 +46,13 @@ export function StarRating({ value, onChange }: Props) {
             onMouseEnter={() => setHovered(n)}
             onMouseLeave={() => setHovered(null)}
             className={[
-              'inline-flex items-center justify-center w-8 h-8 text-2xl cursor-pointer',
+              'inline-flex items-center justify-center w-9 h-9 text-3xl cursor-pointer',
               'hover:scale-110 transition-transform duration-100',
-              filled ? 'star-filled text-warning' : 'star-empty text-bg-muted',
+              filled ? 'star-filled text-yellow-400' : 'star-empty text-zinc-600',
               clickedStar === n ? 'animate-bounce' : '',
             ].join(' ')}
-            style={filled ? { filter: 'drop-shadow(0 0 6px var(--color-warning))' } : undefined}
           >
-            ★
+            {filled ? '★' : '☆'}
           </span>
         )
       })}

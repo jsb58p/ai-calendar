@@ -85,7 +85,7 @@ export function FeedbackModal() {
       titleTestId="modal-title"
       closeTestId="modal-close-button"
     >
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
         {/* Rating */}
         <div data-testid="star-rating-section" className="mb-5">
           <p className="text-text-secondary text-sm mb-3">Rate your current schedule</p>
@@ -111,7 +111,7 @@ export function FeedbackModal() {
         {/* Scope */}
         <div className="mb-5">
           <p className="text-text-secondary text-sm mb-3">Adapt which part of the plan?</p>
-          <div className="flex gap-3">
+          <div className="flex gap-3 mt-2">
             <button type="button" className={scope === 'today' ? SCOPE_ACTIVE_CLASS : SCOPE_INACTIVE_CLASS} onClick={() => setScope('today')} data-testid="scope-today">Today</button>
             <button type="button" className={scope === 'week'  ? SCOPE_ACTIVE_CLASS : SCOPE_INACTIVE_CLASS} onClick={() => setScope('week')}  data-testid="scope-week">This Week</button>
             <button type="button" className={scope === 'all'   ? SCOPE_ACTIVE_CLASS : SCOPE_INACTIVE_CLASS} onClick={() => setScope('all')}   data-testid="scope-all">Entire Plan</button>

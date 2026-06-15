@@ -65,7 +65,7 @@ export function CalendarGrid({ schedule }: Props) {
   return (
     <div className="flex-1 flex flex-col bg-bg-base overflow-hidden">
       {/* Navigation row */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-bg-surface border-b border-border-default flex-shrink-0">
+      <div className="flex items-center gap-3 px-6 py-3 bg-bg-surface border-b border-border-default flex-shrink-0">
         <button
           data-testid="prev-month-button"
           aria-label="Previous month"

@@ -77,7 +77,7 @@ export function TaskDetail() {
         onClick={(e) => e.stopPropagation()}
       >
       {/* Header */}
-      <div className="flex items-start justify-between p-5 border-b border-border-default flex-shrink-0">
+      <div className="flex items-start justify-between px-6 py-5 border-b border-border-default flex-shrink-0">
         <h2 data-testid="detail-title" className="text-text-primary font-semibold text-lg leading-snug pr-4">
           {task.title}
         </h2>
@@ -93,7 +93,7 @@ export function TaskDetail() {
       </div>
 
       {/* Meta row */}
-      <div className="flex items-center gap-3 px-5 py-3 bg-bg-elevated border-b border-border-default">
+      <div className="flex items-center gap-3 px-6 py-3 bg-bg-elevated border-b border-border-default">
         <span data-testid="detail-date" className="font-mono text-xs text-text-secondary">
           {formattedDate}
         </span>
@@ -109,7 +109,7 @@ export function TaskDetail() {
       </div>
 
       {/* Steps section */}
-      <div className="flex-1 overflow-y-auto p-5">
+      <div className="flex-1 overflow-y-auto px-6 py-5">
         <p
           data-testid="step-instructions"
           className="text-text-secondary text-xs font-mono uppercase tracking-wider mb-4"
@@ -140,7 +140,7 @@ export function TaskDetail() {
       </div>
 
       {/* Action bar */}
-      <div className="flex-shrink-0 p-4 border-t border-border-default bg-bg-elevated flex flex-col gap-2">
+      <div className="flex-shrink-0 px-6 py-4 border-t border-border-default bg-bg-elevated flex flex-col gap-2">
         <Button
           data-testid="mark-complete-button"
           variant="primary"
