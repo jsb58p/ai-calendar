@@ -9,11 +9,8 @@ import { Button, Textarea, Divider } from '../ui'
 
 type Scope = 'today' | 'week' | 'all'
 
-const SCOPE_OPTIONS = [
-  { testid: 'scope-today', value: 'today', label: 'Today' },
-  { testid: 'scope-week',  value: 'week',  label: 'This Week' },
-  { testid: 'scope-all',   value: 'all',   label: 'Entire Plan' },
-] as const
+const SCOPE_ACTIVE_CLASS = "px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer select-none transition-all duration-150 bg-indigo-600 text-white border-2 border-indigo-500 hover:bg-indigo-500 active:scale-95"
+const SCOPE_INACTIVE_CLASS = "px-4 py-2 rounded-lg text-sm font-medium cursor-pointer select-none transition-all duration-150 bg-zinc-800 text-zinc-400 border-2 border-zinc-700 hover:bg-zinc-700 hover:text-white active:scale-95"
 
 export function FeedbackModal() {
   const isFeedbackModalOpen  = useAppStore((s) => s.isFeedbackModalOpen)
@@ -114,23 +111,10 @@ export function FeedbackModal() {
         {/* Scope */}
         <div className="mb-5">
           <p className="text-text-secondary text-sm mb-3">Adapt which part of the plan?</p>
-          <div className="flex gap-2">
-            {SCOPE_OPTIONS.map(({ testid, value, label }) => (
-              <button
-                key={value}
-                type="button"
-                data-testid={testid}
-                onClick={() => setScope(value)}
-                className={[
-                  'rounded-full px-4 py-1.5 text-sm transition-colors duration-150',
-                  scope === value
-                    ? 'bg-accent text-white'
-                    : 'bg-bg-muted text-text-secondary hover:bg-bg-elevated',
-                ].join(' ')}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="flex gap-3">
+            <button type="button" className={scope === 'today' ? SCOPE_ACTIVE_CLASS : SCOPE_INACTIVE_CLASS} onClick={() => setScope('today')} data-testid="scope-today">Today</button>
+            <button type="button" className={scope === 'week'  ? SCOPE_ACTIVE_CLASS : SCOPE_INACTIVE_CLASS} onClick={() => setScope('week')}  data-testid="scope-week">This Week</button>
+            <button type="button" className={scope === 'all'   ? SCOPE_ACTIVE_CLASS : SCOPE_INACTIVE_CLASS} onClick={() => setScope('all')}   data-testid="scope-all">Entire Plan</button>
           </div>
         </div>
 

@@ -9,6 +9,9 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const DAY_ACTIVE_CLASS = "w-full py-3 rounded-lg text-sm font-semibold cursor-pointer select-none transition-all duration-150 bg-indigo-600 text-white border-2 border-indigo-500 hover:bg-indigo-500 active:scale-95 flex items-center justify-center"
 const DAY_INACTIVE_CLASS = "w-full py-3 rounded-lg text-sm font-medium cursor-pointer select-none transition-all duration-150 bg-zinc-800 text-zinc-400 border-2 border-zinc-700 hover:bg-zinc-700 hover:text-white active:scale-95 flex items-center justify-center"
 
+const RAMP_ACTIVE_CLASS = "flex-1 px-3 py-2 rounded-lg text-sm font-semibold cursor-pointer select-none transition-all duration-150 bg-indigo-600 text-white border-2 border-indigo-500 hover:bg-indigo-500 active:scale-95 text-center"
+const RAMP_INACTIVE_CLASS = "flex-1 px-3 py-2 rounded-lg text-sm font-medium cursor-pointer select-none transition-all duration-150 bg-zinc-800 text-zinc-400 border-2 border-zinc-700 hover:bg-zinc-700 hover:text-white active:scale-95 text-center"
+
 const RAMP_OPTIONS: { value: UserSettings['difficultyRamp']; label: string; testId: string }[] = [
   { value: 'easy-to-hard', label: 'Gradual build-up (easy → hard)', testId: 'ramp-easy-to-hard' },
   { value: 'flat',         label: 'Consistent difficulty',           testId: 'ramp-flat' },
@@ -181,22 +184,17 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
         {/* Section 4: Difficulty Progression */}
         <section>
           <p className="text-text-secondary text-sm font-medium mb-3">Difficulty Progression</p>
-          <div className="flex flex-col gap-2.5">
+          <div className="flex gap-2">
             {RAMP_OPTIONS.map(({ value, label, testId }) => (
-              <label key={value} className="flex items-center gap-3 cursor-pointer group">
-                <input
-                  type="radio"
-                  name="difficultyRamp"
-                  value={value}
-                  data-testid={testId}
-                  checked={difficultyRamp === value}
-                  onChange={() => setDifficultyRamp(value)}
-                  className="w-4 h-4 accent-[var(--color-accent)] cursor-pointer"
-                />
-                <span className="text-text-primary text-sm group-hover:text-text-primary/90">
-                  {label}
-                </span>
-              </label>
+              <button
+                key={value}
+                type="button"
+                data-testid={testId}
+                onClick={() => setDifficultyRamp(value)}
+                className={difficultyRamp === value ? RAMP_ACTIVE_CLASS : RAMP_INACTIVE_CLASS}
+              >
+                {label}
+              </button>
             ))}
           </div>
         </section>
