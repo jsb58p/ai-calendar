@@ -135,3 +135,41 @@ beforeEach(() => {
 **Reasoning:** Rendering markdown as raw HTML (`dangerouslySetInnerHTML`) opens an XSS vector if Claude ever returns unexpected content. `react-markdown` parses the markdown AST and renders it through React's reconciler — no raw HTML injection. Custom `components` overrides (`p`, `strong`, `code`, `ul`, etc.) allow full Tailwind styling of every markdown element type.
 
 **Trade-offs:** `react-markdown` adds ~30 KB to the bundle (gzipped). For the use case (step-by-step instructions), this is justified by the safety and formatting benefits. A lighter alternative would be a small bespoke regex-based renderer, but that would need ongoing maintenance as Claude's formatting evolves.
+
+---
+
+## 11. Authorization header over httpOnly cookies for production
+
+**Context:** JWT sessions needed to work cross-origin (Vercel frontend → Render backend). The initial implementation used httpOnly cookies.
+
+**Decision:** Store JWT in `localStorage` and send it as an `Authorization: Bearer <token>` header via an axios request interceptor. The httpOnly cookie is kept as a dev/fallback mechanism only.
+
+**Reasoning:** httpOnly cookies with `SameSite=None` require `Secure=true` and are actively blocked by Safari's Intelligent Tracking Prevention (ITP) and Brave's privacy defaults for cross-origin third-party cookies. `Authorization` headers are not subject to the same browser cookie policies and work reliably for cross-origin API calls in all browsers.
+
+The axios interceptor (`api.interceptors.request.use(...)`) reads `localStorage.getItem('auth_token')` synchronously and attaches the header to every request without modifying any individual call site.
+
+**Trade-offs:** `localStorage` is accessible to JavaScript running on the page, making it vulnerable to XSS attacks (unlike httpOnly cookies, which JavaScript cannot read). This risk is mitigated by the Content Security Policy header and by avoiding `eval()`, `dangerouslySetInnerHTML`, and dynamic script injection throughout the codebase. For the current threat model and user scale, this is an acceptable trade-off over the cross-browser reliability problems with cross-origin cookies.
+
+---
+
+## 12. Resend for transactional email
+
+**Context:** Email verification and admin-triggered password reset require a transactional email provider.
+
+**Decision:** Use Resend (`resend.com`) with the `resend` Node.js SDK.
+
+**Reasoning:** Resend's free tier allows 3,000 emails/month with no credit card required. The SDK is minimal — `new Resend(apiKey).emails.send({ from, to, subject, html })` — and integrates in under 20 lines. Delivery is reliable and the developer experience (logs, error messages) is significantly better than alternatives like Nodemailer with SMTP.
+
+**Trade-offs:** The free tier restricts the sender domain to `onboarding@resend.dev`. Custom sender domains (e.g. `hello@schedulerai.app`) require DNS verification and a paid plan. For the current stage this is acceptable; the free sender address is functional even if not branded.
+
+---
+
+## 13. `isAdmin` flag on User document
+
+**Context:** Admin functionality (user listing, suspension, deletion, password reset) was needed without introducing a separate admin user type or role collection.
+
+**Decision:** Add `isAdmin?: boolean` to the `User` document. Grant admin status via the `make-admin` CLI script (`cd backend && npm run make-admin email@example.com`).
+
+**Reasoning:** A single optional boolean on the existing document is the simplest possible solution. No additional collection, no role join, no migration. The `requireAdmin` middleware checks `req.user?.isAdmin` after `requireAuth` has already verified the JWT and attached the user — adding the flag to the JWT payload means the check is O(1) with no additional DB call.
+
+**Trade-offs:** Admin status is baked into the JWT at login time. If an admin revokes another user's admin status, that user's existing JWT still carries `isAdmin: true` until expiry (up to 7 days). For the current use case (small user base, trusted admins), this is acceptable. A future mitigation would be a token blocklist or shorter JWT TTL for admin actions.

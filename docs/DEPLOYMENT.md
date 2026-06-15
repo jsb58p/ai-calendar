@@ -18,10 +18,16 @@
 |---|---|---|
 | `ANTHROPIC_API_KEY` | Authenticates Claude API requests | [console.anthropic.com](https://console.anthropic.com) → Settings → API Keys |
 | `MONGODB_URI` | MongoDB Atlas connection string | Atlas → Connect → Drivers → Node.js |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | Google Cloud Console → APIs & Services → Credentials |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | Same credentials page as above |
-| `GOOGLE_REDIRECT_URI` | OAuth callback URL | Set to `https://schedulerai-backend.onrender.com/api/auth/google/callback` |
+| `GOOGLE_CLIENT_ID` | Google Calendar OAuth client ID | Google Cloud Console → APIs & Services → Credentials |
+| `GOOGLE_CLIENT_SECRET` | Google Calendar OAuth client secret | Same credentials page as above |
+| `GOOGLE_REDIRECT_URI` | Google Calendar OAuth callback URL | Set to `https://schedulerai-backend.onrender.com/api/auth/google/callback` |
+| `GOOGLE_AUTH_REDIRECT_URI` | Google Sign-In OAuth callback URL | Set to `https://schedulerai-backend.onrender.com/api/auth/users/google/callback` |
 | `FRONTEND_URL` | CORS allow-list + OAuth redirect target | Set to `https://schedulerai-frontend-eta.vercel.app` |
+| `JWT_SECRET` | Secret key for signing user JWTs | Generate with `openssl rand -hex 32` — keep secret |
+| `JWT_EXPIRES_IN` | JWT expiry duration | Set to `7d` |
+| `RESEND_API_KEY` | API key for sending transactional emails | [resend.com](https://resend.com) → API Keys |
+| `EMAIL_FROM` | Sender address for verification/reset emails | `onboarding@resend.dev` (free tier) or your verified domain |
+| `BACKEND_URL` | Backend base URL, used in email verification links | Set to `https://schedulerai-backend.onrender.com` |
 | `PORT` | Port Render routes traffic to | Set to `10000` (Render's default) |
 | `NODE_ENV` | Node environment | Set to `production` |
 
@@ -48,6 +54,18 @@ The `render.yaml` at the repo root declares the Render service configuration, bu
 
 ---
 
+## Admin Setup
+
+After the first deploy, promote your account to admin so you can access the Admin Panel. Run the `make-admin` script against the production MongoDB by setting the `MONGODB_URI` env var locally:
+
+```bash
+MONGODB_URI="mongodb+srv://..." cd backend && npm run make-admin your@email.com
+```
+
+You must have already registered an account at the production URL before running this. The script sets `isAdmin: true` on the matching user document. The Admin Panel button then appears in the header on next login.
+
+---
+
 ## Known Limitations
 
 **Render free tier cold starts**
@@ -63,3 +81,6 @@ The free M0 cluster has a 512 MB storage limit. This is sufficient for roughly 1
 
 **No token refresh**
 Google OAuth access tokens expire after 1 hour. The app stores the refresh token but does not currently call the token refresh endpoint automatically. Users need to re-connect Google Calendar if their session expires. A future improvement would add automatic token refresh in the calendar sync route.
+
+**Google Calendar tokens in localStorage**
+Google Calendar OAuth tokens (`access_token`, `refresh_token`) are stored in `localStorage` only — they are not persisted server-side. Users must reconnect Google Calendar if they clear browser storage, switch devices, or use a different browser.

@@ -4,7 +4,7 @@
 
 ![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
-![Tests](https://img.shields.io/badge/tests-241%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-313%20passing-brightgreen)
 ![Deployed on Vercel](https://img.shields.io/badge/deployed%20on-Vercel-black)
 
 ---
@@ -27,6 +27,11 @@
 - **Progress tracking** — Per-task step-by-step completion with checkboxes; task status (complete / pending / skipped)
 - **Diff toasts** — When Claude adapts your schedule, a toast explains exactly what changed and why
 - **Dark-mode design system** — Custom semantic colour tokens, fully keyboard-accessible
+- **User authentication** — Email/password registration and Google Sign-In; JWT sessions via Authorization header
+- **Email verification** — Resend sends a verification link on registration; verified badge shown in-app
+- **Per-user data isolation** — Each user sees only their own goals, schedules, and feedback
+- **Goal switcher** — Manage multiple goals per account from the "My Goals" button
+- **Admin panel** — User management: view all accounts, suspend/unsuspend, delete with cascade, trigger password reset, toggle admin status
 
 ---
 
@@ -41,6 +46,8 @@
 | Backend | Node.js + Express |
 | AI | Anthropic Claude API (`claude-sonnet-4-6`) |
 | Database | MongoDB Atlas |
+| Auth | JWT + bcryptjs |
+| Email | Resend |
 | Calendar sync | Google Calendar API (OAuth 2.0) |
 | Testing | Vitest + Playwright |
 | Frontend deploy | Vercel |
@@ -65,6 +72,12 @@ MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/?appName=sched
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 GOOGLE_REDIRECT_URI=http://localhost:3001/api/auth/google/callback
+GOOGLE_AUTH_REDIRECT_URI=http://localhost:3001/api/auth/users/google/callback
+JWT_SECRET=generate-with-openssl-rand-hex-32
+JWT_EXPIRES_IN=7d
+RESEND_API_KEY=your_resend_api_key_here
+EMAIL_FROM=onboarding@resend.dev
+BACKEND_URL=http://localhost:3001
 PORT=3001
 EOF
 
@@ -77,7 +90,7 @@ cd frontend && npm run dev
 
 Open [http://localhost:5173](http://localhost:5173).
 
-See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full setup guide including MongoDB Atlas and Google Cloud setup.
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full setup guide including MongoDB Atlas, Google Cloud, and Resend setup.
 
 ---
 
@@ -85,11 +98,11 @@ See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for the full setup guide includ
 
 | Document | Description |
 |---|---|
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System diagrams, component tree, database schema, AI prompt architecture |
-| [docs/API.md](docs/API.md) | Complete REST API reference with request/response schemas and curl examples |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System diagrams, auth flow, component tree, database schema, AI prompt architecture |
+| [docs/API.md](docs/API.md) | Complete REST API reference — auth, goals, feedback, calendar, and admin endpoints |
 | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | Development setup, project structure, code style, and contribution guidelines |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production environment variables, deploy process, and known limitations |
-| [docs/DECISIONS.md](docs/DECISIONS.md) | Architecture Decision Records — why Zustand, MongoDB, inline styles, etc. |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Architecture Decision Records — why Zustand, MongoDB, Authorization header, Resend, etc. |
 
 ---
 
@@ -102,21 +115,22 @@ User (browser)
   └── Vercel CDN (React + Vite)
         └── Render (Node.js + Express)
               ├── Anthropic API  (schedule generation + adaptation)
-              ├── MongoDB Atlas  (goals, schedules, feedback, settings)
-              └── Google Calendar API  (OAuth 2.0, all-day events)
+              ├── MongoDB Atlas  (users, goals, schedules, feedback, settings)
+              ├── Google Calendar API  (OAuth 2.0, all-day events)
+              └── Resend  (email verification, password reset)
 ```
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for sequence diagrams covering goal submission, feedback adaptation, and the full Google Calendar OAuth flow.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for sequence diagrams covering registration & email verification, goal submission, feedback adaptation, and the full Google Calendar OAuth flow.
 
 ---
 
 ## Testing
 
 ```bash
-# Backend unit tests — 27 tests
+# Backend unit tests — 57 tests
 cd backend && npm test
 
-# Frontend unit tests — 206 tests (enforces 80% coverage threshold)
+# Frontend unit tests — 248 tests (enforces 80% coverage threshold)
 cd frontend && npm run test:coverage
 
 # E2E tests — 8 tests (requires both dev servers running)
