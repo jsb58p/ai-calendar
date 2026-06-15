@@ -209,9 +209,13 @@ function AppContent() {
           <CalendarSkeleton />
         </div>
       ) : activeSchedule === null ? (
-        <div className="flex-1 flex items-center justify-center p-8">
-          <GoalInput />
-        </div>
+        <>
+          <Header />
+          <div className="h-14 flex-shrink-0" />
+          <div className="flex-1 flex items-center justify-center p-8">
+            <GoalInput />
+          </div>
+        </>
       ) : (
         <div className="flex-1 flex flex-col overflow-hidden">
           <Header />
