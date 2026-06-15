@@ -7,9 +7,9 @@ interface Props {
 }
 
 const cardClasses: Record<Task['status'], string> = {
-  pending:  'border-l-warning bg-warning/5 hover:bg-warning/20 hover:border-l-warning active:scale-[0.98]',
-  complete: 'border-l-success bg-success/5 opacity-60 hover:bg-success/10 active:scale-[0.98]',
-  skipped:  'border-l-bg-muted bg-bg-muted/30 opacity-40 hover:bg-bg-muted/50 active:scale-[0.98]',
+  pending:  'border-l-warning bg-warning/5 hover:bg-warning/25 hover:border-l-4 active:scale-[0.97]',
+  complete: 'border-l-success bg-success/5 opacity-60 hover:bg-success/20 hover:opacity-80 active:scale-[0.97]',
+  skipped:  'border-l-bg-muted bg-bg-muted/30 opacity-40 hover:bg-bg-muted/60 hover:opacity-60 active:scale-[0.97]',
 }
 
 const dotClasses: Record<Task['status'], string> = {

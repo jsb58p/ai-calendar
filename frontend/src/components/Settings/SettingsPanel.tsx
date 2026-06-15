@@ -120,8 +120,8 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
                   onClick={() => toggleDay(i)}
                   className={
                     active
-                      ? 'flex-1 rounded-md px-3 py-1.5 text-sm border transition-all duration-150 cursor-pointer bg-accent text-white border-accent font-medium'
-                      : 'flex-1 rounded-md px-3 py-1.5 text-sm border transition-all duration-150 cursor-pointer bg-bg-muted text-text-secondary border-border-default hover:bg-bg-elevated hover:text-text-primary hover:border-border-accent'
+                      ? 'flex-1 rounded-md px-3 py-1.5 text-sm border transition-all duration-150 cursor-pointer bg-accent text-white border-accent font-semibold shadow-[0_0_0_2px_rgba(99,102,241,0.4)]'
+                      : 'flex-1 rounded-md px-3 py-1.5 text-sm border transition-all duration-150 cursor-pointer bg-bg-muted text-text-muted border-border-default hover:bg-accent/20 hover:text-accent hover:border-accent'
                   }
                 >
                   {label}

@@ -8,10 +8,10 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<NonNullable<Props['variant']>, string> = {
-  primary:   'bg-accent hover:bg-accent-hover active:scale-95 active:bg-accent-hover text-white font-medium rounded-md transition-all duration-150',
-  secondary: 'bg-bg-muted hover:bg-bg-elevated active:scale-95 active:bg-bg-elevated border border-border-default text-text-primary rounded-md transition-all duration-150',
-  danger:    'bg-danger/10 hover:bg-danger/20 active:scale-95 active:bg-danger/30 border border-danger/30 text-danger rounded-md transition-all duration-150',
-  ghost:     'hover:bg-bg-muted active:scale-95 text-text-secondary hover:text-text-primary rounded-md transition-all duration-150',
+  primary:   'bg-accent hover:brightness-125 active:scale-95 active:brightness-90 text-white font-medium rounded-md transition-all duration-150',
+  secondary: 'bg-bg-muted hover:bg-bg-elevated hover:border-accent hover:text-text-primary active:scale-95 active:bg-bg-muted border border-border-default text-text-primary rounded-md transition-all duration-150',
+  danger:    'bg-danger/10 hover:bg-danger/30 hover:border-danger/60 active:scale-95 border border-danger/30 text-danger rounded-md transition-all duration-150',
+  ghost:     'hover:bg-accent/20 hover:text-accent active:scale-95 active:bg-accent/30 text-text-secondary rounded-md transition-all duration-150',
 }
 
 const sizeClasses: Record<NonNullable<Props['size']>, string> = {

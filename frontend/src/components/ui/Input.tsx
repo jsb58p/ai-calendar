@@ -21,7 +21,7 @@ export default function Input({ label, id, error, hint, className = '', ...rest 
         className={[
           'w-full bg-bg-muted border border-border-default rounded-md px-3 py-2',
           'text-text-primary placeholder-text-muted text-sm',
-          'focus:outline-none focus:border-border-accent focus:ring-2 focus:ring-accent focus:bg-bg-elevated',
+          'focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent focus:bg-bg-elevated focus:border-l-2 focus:border-l-accent',
           'transition-all duration-150',
           error ? 'border-danger focus:border-danger focus:ring-danger' : '',
           className,

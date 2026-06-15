@@ -80,9 +80,9 @@ describe('Input', () => {
     expect(screen.getByText('Must be at least 8 characters')).toBeInTheDocument()
   })
 
-  it('className includes focus:border-border-accent', () => {
+  it('className includes focus:border-accent', () => {
     render(<Input />)
-    expect(screen.getByRole('textbox').className).toContain('focus:border-border-accent')
+    expect(screen.getByRole('textbox').className).toContain('focus:border-accent')
   })
 })
 
@@ -112,9 +112,9 @@ describe('Textarea', () => {
     expect(screen.getByText('Max 500 characters')).toBeInTheDocument()
   })
 
-  it('className includes focus:border-border-accent', () => {
+  it('className includes focus:border-accent', () => {
     render(<Textarea />)
-    expect(screen.getByRole('textbox').className).toContain('focus:border-border-accent')
+    expect(screen.getByRole('textbox').className).toContain('focus:border-accent')
   })
 })
 

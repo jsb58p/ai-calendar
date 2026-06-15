@@ -150,8 +150,8 @@ export function CalendarGrid({ schedule }: Props) {
               }}
               className={[
                 'flex flex-col p-2 min-h-[100px] overflow-visible cursor-pointer transition-all duration-100',
-                isSelected ? 'bg-bg-elevated' : 'bg-bg-surface hover:bg-bg-elevated hover:ring-1 hover:ring-border-accent',
-                isToday ? 'ring-1 ring-inset ring-accent' : '',
+                isSelected ? 'bg-accent/15 ring-2 ring-accent' : 'bg-bg-surface hover:bg-accent/10 hover:ring-2 hover:ring-accent/50 active:bg-accent/20',
+                isToday ? 'ring-2 ring-inset ring-accent' : '',
               ].join(' ')}
             >
               <div
