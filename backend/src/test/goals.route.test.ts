@@ -2,6 +2,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import request from 'supertest'
 import express from 'express'
 
+const { mockDeleteOne, mockDeleteMany } = vi.hoisted(() => ({
+  mockDeleteOne: vi.fn().mockResolvedValue({ deletedCount: 1 }),
+  mockDeleteMany: vi.fn().mockResolvedValue({ deletedCount: 0 }),
+}))
+
 vi.mock('../middleware/auth', () => ({
   requireAuth: (req: any, _res: any, next: any) => {
     req.user = { userId: 'test-user-id', email: 'test@example.com' }
@@ -11,7 +16,9 @@ vi.mock('../middleware/auth', () => ({
 
 vi.mock('../services/db', () => ({
   initDb: vi.fn().mockResolvedValue(undefined),
-  getDb: vi.fn().mockReturnValue({}),
+  getDb: vi.fn().mockReturnValue({
+    collection: () => ({ deleteOne: mockDeleteOne, deleteMany: mockDeleteMany }),
+  }),
   getAllGoals: vi.fn().mockResolvedValue([]),
   saveGoal: vi.fn().mockResolvedValue(undefined),
   getGoal: vi.fn(),
@@ -40,9 +47,9 @@ vi.mock('../services/googleCalendar', () => ({
 
 import { goalsRouter } from '../routes/goals'
 import { errorHandler } from '../middleware/errorHandler'
-import { saveGoal, saveSchedule, getSchedule } from '../services/db'
+import { saveGoal, saveSchedule, getSchedule, getGoal } from '../services/db'
 import { generateSchedule } from '../services/anthropic'
-import type { Schedule, Task } from '../models/types'
+import type { Schedule, Task, GoalInput } from '../models/types'
 
 const MOCK_TASK: Task = {
   id: 'task-1',
@@ -148,5 +155,44 @@ describe('PATCH /api/goals/:goalId/tasks/:taskId/steps', () => {
       .send({ completedSteps: [1] })
 
     expect(res.status).toBe(404)
+  })
+})
+
+const MOCK_GOAL: GoalInput = {
+  id: 'goal-1',
+  userId: 'test-user-id',
+  title: 'Run a 5K',
+  description: 'Train consistently',
+  targetDate: '2026-12-31',
+  createdAt: '2025-01-01T00:00:00.000Z',
+}
+
+describe('DELETE /api/goals/:id', () => {
+  beforeEach(() => {
+    mockDeleteOne.mockClear()
+    mockDeleteMany.mockClear()
+    mockDeleteOne.mockResolvedValue({ deletedCount: 1 })
+    mockDeleteMany.mockResolvedValue({ deletedCount: 0 })
+  })
+
+  it('with unknown goalId returns 404', async () => {
+    vi.mocked(getGoal).mockResolvedValue(undefined)
+    const res = await request(app).delete('/api/goals/unknown-id')
+    expect(res.status).toBe(404)
+    expect(res.body.error).toMatch(/not found/i)
+  })
+
+  it('with known goalId returns 200 and deletes goal data', async () => {
+    vi.mocked(getGoal).mockResolvedValue(MOCK_GOAL)
+    const res = await request(app).delete('/api/goals/goal-1')
+    expect(res.status).toBe(200)
+    expect(res.body.message).toBe('Goal deleted')
+  })
+
+  it('calls deleteOne three times and deleteMany once', async () => {
+    vi.mocked(getGoal).mockResolvedValue(MOCK_GOAL)
+    await request(app).delete('/api/goals/goal-1')
+    expect(mockDeleteOne).toHaveBeenCalledTimes(3)
+    expect(mockDeleteMany).toHaveBeenCalledTimes(1)
   })
 })

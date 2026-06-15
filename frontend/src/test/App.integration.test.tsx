@@ -16,6 +16,7 @@ vi.mock('../api/client', () => ({
   logout: vi.fn().mockResolvedValue(undefined),
   getGoogleSignInUrl: vi.fn(() => '/api/auth/users/google'),
   syncAllTasks: vi.fn().mockResolvedValue(undefined),
+  deleteGoal: vi.fn().mockResolvedValue(undefined),
 }))
 
 import App from '../App'

@@ -14,6 +14,7 @@ import { ScheduleChanges } from './components/FeedbackModal/ScheduleChanges'
 import { Toast } from './components/Toast'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SettingsPanel } from './components/Settings/SettingsPanel'
+import { GoalSwitcher } from './components/GoalSwitcher/GoalSwitcher'
 import { GoogleConnectPrompt } from './components/GoogleConnectPrompt'
 import { LoginPage } from './components/Auth/LoginPage'
 import { EmailVerified } from './components/Auth/EmailVerified'
@@ -48,16 +49,35 @@ function AppContent() {
   const setSelectedTaskId = useAppStore((s) => s.setSelectedTaskId)
   const isSettingsPanelOpen  = useAppStore((s) => s.isSettingsPanelOpen)
   const setSettingsPanelOpen = useAppStore((s) => s.setSettingsPanelOpen)
+  const isGoalSwitcherOpen   = useAppStore((s) => s.isGoalSwitcherOpen)
+  const setGoalSwitcherOpen  = useAppStore((s) => s.setGoalSwitcherOpen)
 
   const prevActiveGoalIdRef = useRef(activeGoalId)
 
-  // ── Auth check (runs once on mount) ────────────────────────────────────────
+  // ── Auth check + restore most recent goal (runs once on mount) ────────────
   useEffect(() => {
     getMe()
-      .then(({ user }) => setCurrentUser(user))
+      .then(async ({ user }) => {
+        setCurrentUser(user)
+        try {
+          const { goals: fetchedGoals } = await fetchGoals()
+          setGoals(fetchedGoals)
+          if (fetchedGoals.length > 0 && !localStorage.getItem('activeGoalId')) {
+            const mostRecent = [...fetchedGoals].sort(
+              (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            )[0]!
+            setActiveGoalId(mostRecent.id)
+            localStorage.setItem('activeGoalId', mostRecent.id)
+            const schedule = await fetchSchedule(mostRecent.id)
+            setSchedule(schedule)
+          }
+        } catch {
+          // non-critical — isAuthenticated effects will retry
+        }
+      })
       .catch(() => setCurrentUser(null))
       .finally(() => setAuthLoading(false))
-  }, [setCurrentUser, setAuthLoading])
+  }, [setCurrentUser, setAuthLoading, setGoals, setActiveGoalId, setSchedule])
 
   // ── Restore Google Calendar OAuth tokens ───────────────────────────────────
   useEffect(() => {
@@ -249,6 +269,7 @@ function AppContent() {
         </div>
       )}
       <SettingsPanel isOpen={isSettingsPanelOpen} onClose={() => setSettingsPanelOpen(false)} />
+      <GoalSwitcher isOpen={isGoalSwitcherOpen} onClose={() => setGoalSwitcherOpen(false)} />
       <GoogleConnectPrompt isOpen={showGooglePrompt} onClose={handleCloseGooglePrompt} />
     </div>
   )

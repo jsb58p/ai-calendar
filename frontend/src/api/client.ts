@@ -156,6 +156,14 @@ export function getGoogleSignInUrl(): string {
   return base ? `${base}/api/auth/users/google` : '/api/auth/users/google'
 }
 
+export async function deleteGoal(goalId: string): Promise<void> {
+  try {
+    await api.delete(`/goals/${goalId}`)
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to delete goal'))
+  }
+}
+
 export async function syncAllTasks(
   goalId: string,
   tokens: { access_token: string; refresh_token: string }

@@ -16,7 +16,9 @@ export function Header() {
   const clearActiveGoal       = useAppStore((s) => s.clearActiveGoal)
   const isHistoryPanelOpen    = useAppStore((s) => s.isHistoryPanelOpen)
   const setHistoryPanelOpen   = useAppStore((s) => s.setHistoryPanelOpen)
+  const isAuthenticated        = useAppStore((s) => s.isAuthenticated)
   const setSettingsPanelOpen  = useAppStore((s) => s.setSettingsPanelOpen)
+  const setGoalSwitcherOpen   = useAppStore((s) => s.setGoalSwitcherOpen)
   const setGoogleTokens       = useAppStore((s) => s.setGoogleTokens)
 
   const initials = currentUser
@@ -114,6 +116,18 @@ export function Header() {
         >
           ⚙
         </button>
+
+        {isAuthenticated && (
+          <button
+            data-testid="my-goals-button"
+            onClick={() => setGoalSwitcherOpen(true)}
+            style={{ background: '#22222e', border: '1px solid #2a2a3a', borderRadius: '6px', padding: '6px 10px', color: '#9090aa', cursor: 'pointer' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#2a2a3a' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#22222e' }}
+          >
+            My Goals
+          </button>
+        )}
 
         <button
           data-testid="history-button"

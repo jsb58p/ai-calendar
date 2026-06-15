@@ -7,6 +7,8 @@ import {
   getSchedule,
   saveSettings,
   getAllGoals,
+  getGoal,
+  getDb,
 } from '../services/db'
 import { generateSchedule } from '../services/anthropic'
 import { requireAuth } from '../middleware/auth'
@@ -140,6 +142,30 @@ function isValidSettings(s: unknown): s is UserSettings {
     typeof o.timezone === 'string'
   )
 }
+
+// DELETE /api/goals/:id
+goalsRouter.delete('/:id', async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params
+    const userId = req.user!.userId
+
+    const goal = await getGoal(id, userId)
+    if (!goal) {
+      res.status(404).json({ error: 'Goal not found' })
+      return
+    }
+
+    const db = getDb()
+    await db.collection('goals').deleteOne({ id, userId })
+    await db.collection('schedules').deleteOne({ goalId: id, userId })
+    await db.collection('feedback').deleteMany({ scheduleId: id, userId })
+    await db.collection('settings').deleteOne({ goalId: id, userId })
+
+    res.status(200).json({ message: 'Goal deleted' })
+  } catch (err) {
+    next(err)
+  }
+})
 
 // POST /api/goals
 goalsRouter.post('/', async (req: Request, res: Response, next: NextFunction) => {

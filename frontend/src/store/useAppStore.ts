@@ -22,6 +22,7 @@ interface AppState {
   toastDiffs: DiffEntry[]
   isHistoryPanelOpen: boolean
   isSettingsPanelOpen: boolean
+  isGoalSwitcherOpen: boolean
   settings: UserSettings
   hasSeenGooglePrompt: boolean
 }
@@ -48,6 +49,8 @@ interface AppActions {
   setGoals: (goals: GoalInput[]) => void
   setHistoryPanelOpen: (v: boolean) => void
   setSettingsPanelOpen: (v: boolean) => void
+  setGoalSwitcherOpen: (v: boolean) => void
+  removeGoal: (goalId: string) => void
   updateSettings: (patch: Partial<UserSettings>) => void
   resetSettings: () => void
   updateTaskSteps: (taskId: string, completedSteps: number[]) => void
@@ -72,6 +75,7 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   toastDiffs: [],
   isHistoryPanelOpen: false,
   isSettingsPanelOpen: false,
+  isGoalSwitcherOpen: false,
   settings: DEFAULT_SETTINGS,
   hasSeenGooglePrompt: false,
 
@@ -152,6 +156,19 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   setHistoryPanelOpen: (isHistoryPanelOpen) => set({ isHistoryPanelOpen }),
 
   setSettingsPanelOpen: (isSettingsPanelOpen) => set({ isSettingsPanelOpen }),
+
+  setGoalSwitcherOpen: (isGoalSwitcherOpen) => set({ isGoalSwitcherOpen }),
+
+  removeGoal: (goalId) =>
+    set((s) => {
+      const newSchedules = { ...s.schedules }
+      delete newSchedules[goalId]
+      return {
+        goals: s.goals.filter((g) => g.id !== goalId),
+        schedules: newSchedules,
+        activeGoalId: s.activeGoalId === goalId ? null : s.activeGoalId,
+      }
+    }),
 
   updateSettings: (patch) =>
     set((s) => {

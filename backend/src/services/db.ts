@@ -42,6 +42,7 @@ export async function getAllGoals(userId: string): Promise<GoalInput[]> {
   const docs = await getDb()
     .collection('goals')
     .find({ userId }, { projection: { _id: 0 } })
+    .sort({ createdAt: -1 })
     .toArray()
   return docs as unknown as GoalInput[]
 }
