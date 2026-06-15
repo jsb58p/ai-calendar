@@ -144,7 +144,6 @@ function AppContent() {
           <TaskDetail />
           <FeedbackModal />
           <HistoryPanel />
-          <SettingsPanel isOpen={isSettingsPanelOpen} onClose={() => setSettingsPanelOpen(false)} />
           <Toast
             message={toastMessage}
             onDismiss={() => { setToastMessage(null); setToastDiffs([]) }}
@@ -153,6 +152,7 @@ function AppContent() {
           </Toast>
         </div>
       )}
+      <SettingsPanel isOpen={isSettingsPanelOpen} onClose={() => setSettingsPanelOpen(false)} />
     </div>
   )
 }

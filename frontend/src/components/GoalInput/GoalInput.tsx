@@ -66,18 +66,20 @@ export function GoalInput() {
     `${settings.minTaskDuration}–${settings.maxTaskDuration} min tasks`,
   ].join(' · ')
 
+  if (isLoading) {
+    return (
+      <div
+        data-testid="loading-spinner"
+        className="fixed inset-0 z-[200] bg-bg-base flex flex-col items-center justify-center gap-6"
+      >
+        <div className="w-16 h-16 rounded-full border-4 border-bg-muted border-t-accent animate-spin-slow" />
+        <p className="text-text-primary text-xl font-semibold">Generating your schedule...</p>
+        <p className="text-text-muted text-sm font-mono">This may take a few seconds</p>
+      </div>
+    )
+  }
+
   return (
-    <>
-      {isLoading && (
-        <div
-          data-testid="loading-spinner"
-          className="fixed inset-0 z-[200] bg-bg-base flex flex-col items-center justify-center gap-6"
-        >
-          <div className="w-16 h-16 rounded-full border-4 border-bg-muted border-t-accent animate-spin-slow" />
-          <h2 className="text-text-primary text-xl font-semibold">Generating your schedule...</h2>
-          <p className="text-text-muted text-sm font-mono">This may take a few seconds</p>
-        </div>
-      )}
     <div className="w-full max-w-lg mx-auto animate-fade-in">
       {/* Header */}
       <div className="mb-8">
@@ -177,6 +179,5 @@ export function GoalInput() {
         </Button>
       </form>
     </div>
-    </>
   )
 }
