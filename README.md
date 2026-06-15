@@ -1,4 +1,4 @@
-# Calendr.ai
+# SchedulerAI
 
 AI-powered calendar app that turns vague goals into actionable, adaptive schedules.
 

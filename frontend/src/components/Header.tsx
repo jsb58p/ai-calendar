@@ -38,7 +38,7 @@ export function Header() {
           data-testid="app-name"
           className="font-mono text-text-primary font-semibold text-lg tracking-tight"
         >
-          Calendr.ai
+          SchedulerAI
         </span>
         <span className="inline-block w-1.5 h-1.5 rounded-full bg-accent ml-0.5 mb-1" />
       </div>

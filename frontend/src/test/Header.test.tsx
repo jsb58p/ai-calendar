@@ -40,9 +40,9 @@ beforeEach(() => {
 })
 
 describe('Header', () => {
-  it('renders "Calendr.ai"', () => {
+  it('renders "SchedulerAI"', () => {
     render(<Header />)
-    expect(screen.getByTestId('app-name')).toHaveTextContent('Calendr.ai')
+    expect(screen.getByTestId('app-name')).toHaveTextContent('SchedulerAI')
   })
 
   it('shows goal title when activeGoal is in the store', () => {
