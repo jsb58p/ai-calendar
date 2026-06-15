@@ -1,8 +1,12 @@
 import axios from 'axios'
 import type { GoalInput, Schedule, Task, UserSettings } from '../types'
 
+const baseURL = import.meta.env['VITE_API_URL']
+  ? `${import.meta.env['VITE_API_URL']}/api`
+  : '/api'
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   withCredentials: true,
 })
 
@@ -86,7 +90,8 @@ export async function updateStepCompletion(
 }
 
 export function getGoogleAuthUrl(): string {
-  return 'http://localhost:3001/api/auth/google'
+  const base = import.meta.env['VITE_API_URL'] ?? 'http://localhost:3001'
+  return `${base}/api/auth/google`
 }
 
 export async function syncAllTasks(

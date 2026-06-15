@@ -37,6 +37,7 @@ export function TaskDetail() {
   if (task === null) return null
 
   function toggleStep(index: number) {
+    if (task === null) return
     const current = task.completedSteps ?? []
     const newSteps = current.includes(index)
       ? current.filter((i) => i !== index)

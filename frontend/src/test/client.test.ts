@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { GoalInput, Schedule } from '../types'
+import { DEFAULT_SETTINGS } from '../types'
 
 // ---------------------------------------------------------------------------
 // axios.create() is called at module-load time inside client.ts, so the mock
@@ -81,21 +82,21 @@ describe('API client', () => {
 
   it('1: submitGoal calls POST to /goals with correct body', async () => {
     mockApi.post.mockResolvedValueOnce({ data: { goal: MOCK_GOAL, schedule: MOCK_SCHEDULE } })
-    const body = { title: 'Learn Guitar', description: 'Practice daily', targetDate: '2026-12-31' }
+    const body = { title: 'Learn Guitar', description: 'Practice daily', targetDate: '2026-12-31', settings: DEFAULT_SETTINGS }
     await submitGoal(body)
     expect(mockApi.post).toHaveBeenCalledWith('/goals', body)
   })
 
   it('2: submitGoal returns { goal, schedule } from response.data', async () => {
     mockApi.post.mockResolvedValueOnce({ data: { goal: MOCK_GOAL, schedule: MOCK_SCHEDULE } })
-    const result = await submitGoal({ title: 'Learn Guitar', description: 'Practice daily', targetDate: '2026-12-31' })
+    const result = await submitGoal({ title: 'Learn Guitar', description: 'Practice daily', targetDate: '2026-12-31', settings: DEFAULT_SETTINGS })
     expect(result).toEqual({ goal: MOCK_GOAL, schedule: MOCK_SCHEDULE })
   })
 
   it('3: submitGoal throws a user-friendly Error when response is 400', async () => {
     mockApi.post.mockRejectedValueOnce(makeAxiosError(400, 'Goal title is required'))
     await expect(
-      submitGoal({ title: '', description: '', targetDate: '' })
+      submitGoal({ title: '', description: '', targetDate: '', settings: DEFAULT_SETTINGS })
     ).rejects.toThrow('Goal title is required')
   })
 
@@ -139,7 +140,7 @@ describe('API client', () => {
   it('9: non-Axios error falls back to the default message (extractMessage fallback path)', async () => {
     mockApi.post.mockRejectedValueOnce(new Error('Network timeout'))
     await expect(
-      submitGoal({ title: 'Learn Guitar', description: 'Practice daily', targetDate: '2026-12-31' })
+      submitGoal({ title: 'Learn Guitar', description: 'Practice daily', targetDate: '2026-12-31', settings: DEFAULT_SETTINGS })
     ).rejects.toThrow('Failed to create goal')
   })
 
@@ -216,7 +217,7 @@ describe('API client', () => {
     })
     mockApi.post.mockRejectedValueOnce(axiosErrorNoBody)
     await expect(
-      submitGoal({ title: 'Learn Guitar', description: 'Practice daily', targetDate: '2026-12-31' })
+      submitGoal({ title: 'Learn Guitar', description: 'Practice daily', targetDate: '2026-12-31', settings: DEFAULT_SETTINGS })
     ).rejects.toThrow('Failed to create goal')
   })
 })

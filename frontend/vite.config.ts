@@ -4,16 +4,16 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react(), tailwindcss()],
-  server: {
+  server: mode !== 'production' ? {
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true,
       },
     },
-  },
+  } : undefined,
   test: {
     globals: true,
     environment: 'jsdom',
@@ -26,4 +26,4 @@ export default defineConfig({
       exclude: ['src/test/**', 'src/main.tsx', 'src/vite-env.d.ts'],
     },
   },
-})
+}))

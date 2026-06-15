@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom'
 import './index.css'
 import App from './App.tsx'
 
-if (process.env.NODE_ENV !== 'production') {
+if (import.meta.env.DEV) {
   import('@axe-core/react').then((axe) => axe.default(React, ReactDOM, 1000))
 }
 
