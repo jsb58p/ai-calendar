@@ -227,7 +227,8 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
               value={blackoutDateInput}
               onChange={(e) => setBlackoutDateInput(e.target.value)}
               min={new Date().toISOString().substring(0, 10)}
-              className="flex-1 bg-bg-muted border border-border-default rounded-md px-3 py-2 text-text-primary text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-150"
+              className="flex-1 bg-bg-muted border border-border-default rounded-md text-text-primary text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-150"
+              style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px' }}
             />
             <Button
               type="button"

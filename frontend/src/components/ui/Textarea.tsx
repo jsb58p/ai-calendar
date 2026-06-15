@@ -19,13 +19,14 @@ export default function Textarea({ label, id, error, hint, className = '', ...re
       <textarea
         id={id}
         className={[
-          'w-full bg-bg-muted border border-border-default rounded-md px-4 py-2',
+          'w-full bg-bg-muted border border-border-default rounded-md',
           'text-text-primary placeholder-text-muted text-sm',
           'focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent focus:bg-bg-elevated focus:border-l-2 focus:border-l-accent',
           'transition-all duration-150 resize-none min-h-[100px]',
           error ? 'border-danger focus:border-danger focus:ring-danger' : '',
           className,
         ].join(' ')}
+        style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px' }}
         {...rest}
       />
       {error && <p className="text-danger text-xs mt-1">{error}</p>}
