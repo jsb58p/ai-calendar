@@ -26,7 +26,7 @@ export default function Input({ label, id, error, hint, className = '', ...rest 
           error ? 'border-danger focus:border-danger focus:ring-danger' : '',
           className,
         ].join(' ')}
-        style={{ paddingLeft: '16px', paddingRight: '16px', paddingTop: '8px', paddingBottom: '8px' }}
+        style={{ paddingLeft: '8px', paddingRight: '8px', paddingTop: '6px', paddingBottom: '6px' }}
         {...rest}
       />
       {error && <p className="text-danger text-xs mt-1">{error}</p>}

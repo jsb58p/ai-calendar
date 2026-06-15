@@ -98,7 +98,7 @@ export function GoalInput() {
       </div>
 
       {/* Settings preview strip */}
-      <div className="bg-bg-surface border border-border-default rounded-lg px-4 py-3 mb-6 flex items-center justify-between">
+      <div className="bg-bg-surface border border-border-default rounded-lg px-4 py-3 mb-6 flex items-center justify-between" style={{ paddingLeft: '12px', paddingRight: '12px' }}>
         <span className="text-text-muted text-xs font-mono">{settingsSummary}</span>
         <Button variant="ghost" size="sm" onClick={() => setSettingsPanelOpen(true)}>
           Edit
