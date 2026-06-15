@@ -10,6 +10,12 @@ vi.mock('../api/client', () => ({
   submitGoal: vi.fn(),
   fetchGoals: vi.fn().mockResolvedValue({ goals: [] }),
   getGoogleAuthUrl: vi.fn(() => 'http://localhost:3001/api/auth/google'),
+  getMe: vi.fn().mockResolvedValue({ user: { id: 'user-1', email: 'test@example.com', displayName: 'Test User', emailVerified: true } }),
+  login: vi.fn(),
+  register: vi.fn(),
+  logout: vi.fn().mockResolvedValue(undefined),
+  getGoogleSignInUrl: vi.fn(() => '/api/auth/users/google'),
+  syncAllTasks: vi.fn().mockResolvedValue(undefined),
 }))
 
 import App from '../App'
@@ -39,8 +45,13 @@ const MOCK_SCHEDULE: Schedule = {
 // Helpers
 // ---------------------------------------------------------------------------
 
+const AUTH_USER = { id: 'user-1', email: 'test@example.com', displayName: 'Test User', emailVerified: true }
+
 function resetStore() {
   useAppStore.setState({
+    authLoading: false,
+    isAuthenticated: true,
+    currentUser: AUTH_USER,
     goals: [],
     schedules: {},
     feedback: [],
