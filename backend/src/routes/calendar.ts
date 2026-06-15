@@ -83,7 +83,7 @@ calendarRouter.post('/sync-all', async (req: Request, res: Response, next: NextF
     const updatedTasks = []
 
     for (const task of foundSchedule.tasks) {
-      if (!task.googleCalendarEventId) {
+      if (!task.googleCalendarEventId || task.googleCalendarEventId === '') {
         const eventId = await createCalendarEvent(access_token, refresh_token, task)
         updatedTasks.push({ ...task, googleCalendarEventId: eventId })
         synced++

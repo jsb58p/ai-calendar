@@ -59,6 +59,11 @@ function AppContent() {
       setGoogleTokens(tokens)
       localStorage.setItem('googleTokens', JSON.stringify(tokens))
       window.history.replaceState({}, '', window.location.pathname)
+
+      const currentGoalId = useAppStore.getState().activeGoalId
+      if (currentGoalId) {
+        syncAllTasks(currentGoalId, tokens).catch(console.error)
+      }
       return
     }
 

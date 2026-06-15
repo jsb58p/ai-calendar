@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
-import { getGoogleAuthUrl } from '../api/client'
+import { getGoogleAuthUrl, syncAllTasks } from '../api/client'
 import { Badge } from './ui'
 
 
 export function Header() {
+  const [syncLabel, setSyncLabel] = useState<'idle' | 'syncing' | 'done'>('idle')
   const activeGoalId = useAppStore((s) => s.activeGoalId)
   const goals = useAppStore((s) => s.goals)
   const schedules = useAppStore((s) => s.schedules)
@@ -110,15 +112,34 @@ export function Header() {
         {googleTokens !== null && (
           <span
             data-testid="google-connected-indicator"
-            style={{ color: '#22c55e', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px' }}
+            style={{ color: '#22c55e', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             📅 Calendar Synced
+            {activeGoal !== null && (
+              <button
+                data-testid="resync-button"
+                disabled={syncLabel === 'syncing'}
+                onClick={async () => {
+                  setSyncLabel('syncing')
+                  try {
+                    await syncAllTasks(activeGoalId!, googleTokens)
+                  } catch {
+                    // ignore — errors already logged in syncAllTasks
+                  }
+                  setSyncLabel('done')
+                  setTimeout(() => setSyncLabel('idle'), 2000)
+                }}
+                style={{ background: 'transparent', border: '1px solid #2a2a3a', borderRadius: '6px', padding: '4px 10px', color: '#38bdf8', cursor: syncLabel === 'syncing' ? 'default' : 'pointer', fontSize: '12px' }}
+              >
+                {syncLabel === 'syncing' ? 'Syncing…' : syncLabel === 'done' ? 'Synced ✓' : 'Re-sync'}
+              </button>
+            )}
             <button
               onClick={() => {
                 setGoogleTokens(null)
                 localStorage.removeItem('googleTokens')
               }}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5a5a72', fontSize: '12px', padding: '0 0 0 4px' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#5a5a72', fontSize: '12px', padding: '0' }}
             >
               Disconnect
             </button>
