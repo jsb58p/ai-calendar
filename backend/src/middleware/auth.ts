@@ -40,14 +40,30 @@ export function clearAuthCookie(res: Response): void {
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+  const secret = process.env['JWT_SECRET']
+  if (!secret) throw new Error('JWT_SECRET not set')
+
+  // Authorization header takes priority (production cross-origin — cookies blocked)
+  const authHeader = req.headers.authorization
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.substring(7)
+    try {
+      const decoded = jwt.verify(token, secret)
+      req.user = decoded as AuthTokenPayload
+      next()
+    } catch {
+      res.status(401).json({ error: 'Invalid or expired session' })
+    }
+    return
+  }
+
+  // Cookie fallback (development same-origin)
   const token: string | undefined = req.cookies?.['auth_token']
   if (!token) {
     res.status(401).json({ error: 'Authentication required' })
     return
   }
   try {
-    const secret = process.env['JWT_SECRET']
-    if (!secret) throw new Error('JWT_SECRET not set')
     const decoded = jwt.verify(token, secret)
     req.user = decoded as AuthTokenPayload
     next()

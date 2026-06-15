@@ -66,6 +66,7 @@ authUsersRouter.post('/register', async (req: Request, res: Response, next: Next
 
     res.status(201).json({
       user: safeUser(user),
+      token,
       message: 'Account created. Please verify your email.',
     })
   } catch (err) {
@@ -103,7 +104,7 @@ authUsersRouter.post('/login', async (req: Request, res: Response, next: NextFun
     const token = generateToken({ userId: user.id, email: user.email })
     setAuthCookie(res, token)
 
-    res.status(200).json({ user: safeUser(user) })
+    res.status(200).json({ user: safeUser(user), token })
   } catch (err) {
     next(err)
   }
@@ -201,7 +202,7 @@ authUsersRouter.get('/google/callback', async (req: Request, res: Response, next
 
     const token = generateToken({ userId: user.id, email: user.email })
     setAuthCookie(res, token)
-    res.redirect(frontendUrl)
+    res.redirect(`${frontendUrl}?auth_token=${token}`)
   } catch (err) {
     next(err)
   }

@@ -14,6 +14,9 @@ const mockApi = vi.hoisted(() => ({
   patch: vi.fn(),
   put: vi.fn(),
   delete: vi.fn(),
+  interceptors: {
+    request: { use: vi.fn() },
+  },
 }))
 
 vi.mock('axios', () => ({

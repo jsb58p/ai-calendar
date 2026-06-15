@@ -84,6 +84,7 @@ export const useAppStore = create<AppState & AppActions>()((set) => ({
   logout: () => {
     localStorage.removeItem('googleTokens')
     localStorage.removeItem('userSettings')
+    localStorage.removeItem('auth_token')
     set({
       currentUser: null,
       isAuthenticated: false,

@@ -17,6 +17,14 @@ const api = axios.create({
   withCredentials: true,
 })
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 function extractMessage(err: unknown, fallback: string): string {
   if (axios.isAxiosError(err)) {
     const serverMsg = (err.response?.data as { error?: string } | undefined)?.error
@@ -102,8 +110,9 @@ export async function register(data: {
   displayName: string
 }): Promise<{ user: CurrentUser; message: string }> {
   try {
-    const res = await api.post<{ user: CurrentUser; message: string }>('/auth/users/register', data)
-    return res.data
+    const res = await api.post<{ user: CurrentUser; token?: string; message: string }>('/auth/users/register', data)
+    if (res.data.token) localStorage.setItem('auth_token', res.data.token)
+    return { user: res.data.user, message: res.data.message }
   } catch (err) {
     throw new Error(extractMessage(err, 'Failed to create account'))
   }
@@ -114,8 +123,9 @@ export async function login(data: {
   password: string
 }): Promise<{ user: CurrentUser }> {
   try {
-    const res = await api.post<{ user: CurrentUser }>('/auth/users/login', data)
-    return res.data
+    const res = await api.post<{ user: CurrentUser; token?: string }>('/auth/users/login', data)
+    if (res.data.token) localStorage.setItem('auth_token', res.data.token)
+    return { user: res.data.user }
   } catch (err) {
     throw new Error(extractMessage(err, 'Failed to sign in'))
   }
@@ -126,6 +136,8 @@ export async function logout(): Promise<void> {
     await api.post('/auth/users/logout')
   } catch (err) {
     throw new Error(extractMessage(err, 'Failed to sign out'))
+  } finally {
+    localStorage.removeItem('auth_token')
   }
 }
 

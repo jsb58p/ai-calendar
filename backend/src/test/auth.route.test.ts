@@ -123,6 +123,7 @@ describe('POST /api/auth/users/register', () => {
     expect(res.body.user.id).toBeDefined()
     expect(res.body.user.passwordHash).toBeUndefined()
     expect(res.body.user.verificationToken).toBeUndefined()
+    expect(typeof res.body.token).toBe('string')
   })
 
   it('2: missing email returns 400', async () => {
@@ -198,6 +199,7 @@ describe('POST /api/auth/users/login', () => {
       displayName: 'Test User',
     })
     expect(res.body.user.passwordHash).toBeUndefined()
+    expect(typeof res.body.token).toBe('string')
   })
 
   it('8: wrong password returns 401', async () => {
@@ -323,5 +325,16 @@ describe('GET /api/auth/users/me', () => {
 
     expect(res.status).toBe(401)
     expect(res.body.error).toMatch(/invalid or expired session/i)
+  })
+
+  it('17: Authorization Bearer header authenticates without cookie', async () => {
+    vi.mocked(getUserById).mockResolvedValueOnce(MOCK_USER)
+
+    const res = await request(app)
+      .get('/api/auth/users/me')
+      .set('Authorization', 'Bearer mock-jwt-token')
+
+    expect(res.status).toBe(200)
+    expect(res.body.user).toMatchObject({ id: 'user-1', email: 'test@example.com' })
   })
 })

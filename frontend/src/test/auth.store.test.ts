@@ -10,6 +10,7 @@ const TEST_USER = {
 }
 
 beforeEach(() => {
+  localStorage.clear()
   useAppStore.setState({
     currentUser: null,
     isAuthenticated: false,
@@ -56,5 +57,11 @@ describe('auth store', () => {
     const state = useAppStore.getState()
     expect(state.currentUser).toBeNull()
     expect(state.isAuthenticated).toBe(false)
+  })
+
+  it('test 5: logout() removes auth_token from localStorage', () => {
+    localStorage.setItem('auth_token', 'test-jwt-token')
+    useAppStore.getState().logout()
+    expect(localStorage.getItem('auth_token')).toBeNull()
   })
 })

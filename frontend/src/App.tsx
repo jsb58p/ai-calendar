@@ -56,6 +56,15 @@ function AppContent() {
 
   // ── Auth check + restore most recent goal (runs once on mount) ────────────
   useEffect(() => {
+    // Store auth_token from Google Sign-In redirect before getMe fires so the
+    // request interceptor picks it up on the very first /me call.
+    const urlParams = new URLSearchParams(window.location.search)
+    const authToken = urlParams.get('auth_token')
+    if (authToken) {
+      localStorage.setItem('auth_token', authToken)
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+
     getMe()
       .then(async ({ user }) => {
         setCurrentUser(user)
