@@ -6,8 +6,8 @@ import type { UserSettings } from '../../types'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-const DAY_ACTIVE_CLASS = "px-4 py-2 rounded-lg text-sm font-semibold cursor-pointer select-none transition-all duration-150 bg-indigo-600 text-white border-2 border-indigo-500 hover:bg-indigo-500 active:scale-95"
-const DAY_INACTIVE_CLASS = "px-4 py-2 rounded-lg text-sm font-medium cursor-pointer select-none transition-all duration-150 bg-zinc-800 text-zinc-400 border-2 border-zinc-700 hover:bg-zinc-700 hover:text-white active:scale-95"
+const DAY_ACTIVE_CLASS = "w-full py-3 rounded-lg text-sm font-semibold cursor-pointer select-none transition-all duration-150 bg-indigo-600 text-white border-2 border-indigo-500 hover:bg-indigo-500 active:scale-95 flex items-center justify-center"
+const DAY_INACTIVE_CLASS = "w-full py-3 rounded-lg text-sm font-medium cursor-pointer select-none transition-all duration-150 bg-zinc-800 text-zinc-400 border-2 border-zinc-700 hover:bg-zinc-700 hover:text-white active:scale-95 flex items-center justify-center"
 
 const RAMP_OPTIONS: { value: UserSettings['difficultyRamp']; label: string; testId: string }[] = [
   { value: 'easy-to-hard', label: 'Gradual build-up (easy → hard)', testId: 'ramp-easy-to-hard' },
@@ -112,7 +112,7 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
           <p className="text-text-secondary text-sm font-medium mb-3">
             Which days are you available to work on this goal?
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-7 gap-2">
             {DAY_LABELS.map((dayName, dayIndex) => {
               const isActive = availableDays.includes(dayIndex)
               return (
