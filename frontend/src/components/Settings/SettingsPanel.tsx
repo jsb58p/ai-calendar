@@ -6,6 +6,9 @@ import type { UserSettings } from '../../types'
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
+const DAY_ACTIVE_CLASS = "rounded-md px-3 py-1.5 text-sm border font-semibold transition-all duration-150 cursor-pointer select-none bg-accent text-white border-accent shadow-[0_0_0_2px_rgba(99,102,241,0.5)]"
+const DAY_INACTIVE_CLASS = "rounded-md px-3 py-1.5 text-sm border font-semibold transition-all duration-150 cursor-pointer select-none bg-bg-muted text-text-muted border-border-default hover:bg-accent/20 hover:text-accent hover:border-accent"
+
 const RAMP_OPTIONS: { value: UserSettings['difficultyRamp']; label: string; testId: string }[] = [
   { value: 'easy-to-hard', label: 'Gradual build-up (easy → hard)', testId: 'ramp-easy-to-hard' },
   { value: 'flat',         label: 'Consistent difficulty',           testId: 'ramp-flat' },
@@ -110,21 +113,17 @@ export function SettingsPanel({ isOpen, onClose }: Props) {
             Which days are you available to work on this goal?
           </p>
           <div className="flex gap-1.5">
-            {DAY_LABELS.map((label, i) => {
-              const active = availableDays.includes(i)
+            {DAY_LABELS.map((dayName, dayIndex) => {
+              const isActive = availableDays.includes(dayIndex)
               return (
                 <button
-                  key={i}
+                  key={dayIndex}
                   type="button"
-                  data-testid={`day-toggle-${i}`}
-                  onClick={() => toggleDay(i)}
-                  className={
-                    active
-                      ? 'flex-1 rounded-md px-3 py-1.5 text-sm border transition-all duration-150 cursor-pointer bg-accent text-white border-accent font-semibold shadow-[0_0_0_2px_rgba(99,102,241,0.4)]'
-                      : 'flex-1 rounded-md px-3 py-1.5 text-sm border transition-all duration-150 cursor-pointer bg-bg-muted text-text-muted border-border-default hover:bg-accent/20 hover:text-accent hover:border-accent'
-                  }
+                  data-testid={`day-toggle-${dayIndex}`}
+                  onClick={() => toggleDay(dayIndex)}
+                  className={isActive ? DAY_ACTIVE_CLASS : DAY_INACTIVE_CLASS}
                 >
-                  {label}
+                  {dayName}
                 </button>
               )
             })}
