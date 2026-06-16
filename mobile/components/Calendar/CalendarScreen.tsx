@@ -5,7 +5,6 @@ import type { DateData } from 'react-native-calendars'
 import { TaskChip } from '../TaskCard/TaskChip'
 import { TaskDetailSheet } from '../TaskCard/TaskDetailSheet'
 import { FeedbackModal } from '../Feedback/FeedbackModal'
-import { Toast } from '../ui/Toast'
 import { useAppStore } from '../../store/useAppStore'
 import type { Schedule } from '../../types'
 
@@ -47,8 +46,6 @@ interface Props {
 export function CalendarScreen({ schedule }: Props) {
   const selectedTaskId    = useAppStore((s) => s.selectedTaskId)
   const setSelectedTaskId = useAppStore((s) => s.setSelectedTaskId)
-  const toastMessage      = useAppStore((s) => s.toastMessage)
-  const setToastMessage   = useAppStore((s) => s.setToastMessage)
 
   const [selectedDate,    setSelectedDate]    = useState(TODAY)
   const [feedbackVisible, setFeedbackVisible] = useState(false)
@@ -181,11 +178,6 @@ export function CalendarScreen({ schedule }: Props) {
       <FeedbackModal
         visible={feedbackVisible}
         onClose={() => setFeedbackVisible(false)}
-      />
-
-      <Toast
-        message={toastMessage}
-        onDismiss={() => setToastMessage(null)}
       />
 
     </View>

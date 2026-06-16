@@ -14,6 +14,7 @@ import { Header } from '../../components/Header'
 import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { Button } from '../../components/ui/Button'
 import { ErrorBanner } from '../../components/ErrorBanner'
+import { FeedbackHistory } from '../../components/Feedback/FeedbackHistory'
 import { logout as logoutApi } from '../../api/client'
 import { useAppStore } from '../../store/useAppStore'
 import type { UserSettings } from '../../types'
@@ -345,6 +346,12 @@ export default function SettingsScreen() {
           <Button variant="primary" size="lg" onPress={handleSave}>
             <Text className="text-white font-semibold text-base">Save Settings</Text>
           </Button>
+
+          <Divider />
+
+          {/* ── Feedback History ───────────────────────────────────────── */}
+          <SectionHeader title="Feedback History" />
+          <FeedbackHistory />
 
         </View>
       </ScreenWrapper>
