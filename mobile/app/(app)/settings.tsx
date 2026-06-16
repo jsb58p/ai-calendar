@@ -15,8 +15,9 @@ import { ScreenWrapper } from '../../components/ScreenWrapper'
 import { Button } from '../../components/ui/Button'
 import { ErrorBanner } from '../../components/ErrorBanner'
 import { FeedbackHistory } from '../../components/Feedback/FeedbackHistory'
-import { logout as logoutApi } from '../../api/client'
+import { logout as logoutApi, syncAllTasks } from '../../api/client'
 import { useAppStore } from '../../store/useAppStore'
+import { useGoogleCalendarAuth } from '../../hooks/useGoogleCalendarAuth'
 import type { UserSettings } from '../../types'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -77,6 +78,11 @@ export default function SettingsScreen() {
   const updateSettings = useAppStore((s) => s.updateSettings)
   const storeLogout    = useAppStore((s) => s.logout)
   const setToastMessage = useAppStore((s) => s.setToastMessage)
+  const activeGoalId   = useAppStore((s) => s.activeGoalId)
+  const googleTokens   = useAppStore((s) => s.googleTokens)
+
+  const { promptAsync, request, calendarEnabled, isConnected, disconnect } =
+    useGoogleCalendarAuth()
 
   // Local form — only persisted on Save
   const [form, setForm]       = useState<UserSettings>({ ...settings })
@@ -84,6 +90,7 @@ export default function SettingsScreen() {
   const [maxDurStr, setMaxDurStr] = useState(String(settings.maxTaskDuration))
   const [durationError, setDurationError] = useState<string | null>(null)
   const [signingOut, setSigningOut]       = useState(false)
+  const [syncing,    setSyncing]          = useState(false)
 
   // Time picker modal
   const [timeTarget, setTimeTarget] = useState<'start' | 'end' | null>(null)
@@ -168,6 +175,19 @@ export default function SettingsScreen() {
     setDurationError(null)
     updateSettings({ ...form, minTaskDuration: min, maxTaskDuration: max })
     setToastMessage('Settings saved')
+  }
+
+  async function handleSyncCalendar() {
+    if (!activeGoalId || !googleTokens) return
+    setSyncing(true)
+    try {
+      const { synced } = await syncAllTasks(activeGoalId, googleTokens)
+      setToastMessage(`Synced ${synced} task${synced !== 1 ? 's' : ''} to Google Calendar`)
+    } catch (err) {
+      setToastMessage(err instanceof Error ? err.message : 'Sync failed')
+    } finally {
+      setSyncing(false)
+    }
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -346,6 +366,49 @@ export default function SettingsScreen() {
           <Button variant="primary" size="lg" onPress={handleSave}>
             <Text className="text-white font-semibold text-base">Save Settings</Text>
           </Button>
+
+          <Divider />
+
+          {/* ── Google Calendar ────────────────────────────────────────── */}
+          <SectionHeader title="Google Calendar" />
+          {!calendarEnabled ? (
+            <Text className="text-text-muted text-sm">
+              Google credentials are not configured for this build.
+            </Text>
+          ) : isConnected ? (
+            <View className="gap-3">
+              <View className="bg-bg-surface border border-border-default rounded-xl px-4 py-3 flex-row items-center gap-3">
+                <Text className="text-success text-base">📅</Text>
+                <Text className="text-text-primary text-sm font-medium flex-1">
+                  Calendar Connected
+                </Text>
+              </View>
+              {activeGoalId && (
+                <Button
+                  variant="secondary"
+                  onPress={handleSyncCalendar}
+                  loading={syncing}
+                >
+                  <Text className="text-text-secondary text-sm font-medium">
+                    Sync Calendar
+                  </Text>
+                </Button>
+              )}
+              <Button variant="danger" onPress={disconnect}>
+                <Text className="text-danger text-sm font-medium">Disconnect</Text>
+              </Button>
+            </View>
+          ) : (
+            <Button
+              variant="secondary"
+              onPress={() => promptAsync()}
+              disabled={!request}
+            >
+              <Text className="text-text-secondary text-sm font-medium">
+                Connect Google Calendar
+              </Text>
+            </Button>
+          )}
 
           <Divider />
 

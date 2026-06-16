@@ -212,3 +212,18 @@ export async function toggleUserAdmin(userId: string): Promise<{ user: AdminUser
     throw new Error(extractMessage(err, 'Failed to toggle admin status'))
   }
 }
+
+export async function connectGoogleCalendarMobile(
+  accessToken: string,
+  refreshToken: string
+): Promise<{ access_token: string; refresh_token: string }> {
+  try {
+    const res = await apiClient.post<{ access_token: string; refresh_token: string }>(
+      '/calendar/connect-mobile',
+      { access_token: accessToken, refresh_token: refreshToken }
+    )
+    return res.data
+  } catch (err) {
+    throw new Error(extractMessage(err, 'Failed to connect Google Calendar'))
+  }
+}

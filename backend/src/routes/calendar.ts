@@ -105,3 +105,19 @@ calendarRouter.post('/sync-all', async (req: Request, res: Response, next: NextF
     next(err)
   }
 })
+
+// POST /api/calendar/connect-mobile
+calendarRouter.post('/connect-mobile', (req: Request, res: Response) => {
+  const body = req.body as Record<string, unknown>
+  const { access_token, refresh_token = '' } = body
+
+  if (!access_token || typeof access_token !== 'string') {
+    res.status(400).json({ error: 'access_token is required' })
+    return
+  }
+
+  res.status(200).json({
+    access_token,
+    refresh_token: typeof refresh_token === 'string' ? refresh_token : '',
+  })
+})
