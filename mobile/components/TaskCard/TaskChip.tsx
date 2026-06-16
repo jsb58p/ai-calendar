@@ -17,10 +17,7 @@ export function TaskChip({ task, onPress }: Props) {
 
   return (
     <TouchableOpacity
-      onPress={() => {
-        console.log('TaskChip tapped:', task.id)
-        onPress()
-      }}
+      onPress={onPress}
       activeOpacity={0.75}
       className="bg-bg-surface rounded-xl mb-2 flex-row items-center overflow-hidden"
     >
