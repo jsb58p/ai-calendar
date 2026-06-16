@@ -42,7 +42,7 @@ export default function LoginScreen() {
   const currentUser     = useAppStore((s) => s.currentUser)
   const setCurrentUser  = useAppStore((s) => s.setCurrentUser)
   const setToastMessage = useAppStore((s) => s.setToastMessage)
-  const { promptAsync, request } = useGoogleAuth()
+  const { promptAsync, request, googleEnabled } = useGoogleAuth()
 
   // Navigate when Google auth completes (it sets currentUser without navigating directly)
   useEffect(() => {
@@ -171,21 +171,25 @@ export default function LoginScreen() {
             {/* ── Inline error ────────────────────────────────────────────── */}
             <InlineError message={error} onDismiss={() => setError(null)} />
 
-            {/* ── Google button ───────────────────────────────────────────── */}
-            <TouchableOpacity
-              onPress={handleGoogleSignIn}
-              activeOpacity={0.85}
-              disabled={!request}
-              className={`bg-white rounded-xl py-3.5 flex-row items-center justify-center border border-gray-200 ${!request ? 'opacity-50' : ''}`}
-              style={{ gap: 10 }}
-            >
-              <Ionicons name="logo-google" size={20} color="#4285F4" />
-              <Text style={{ color: '#111827', fontWeight: '600', fontSize: 16 }}>
-                Continue with Google
-              </Text>
-            </TouchableOpacity>
+            {/* ── Google button (only when client IDs are configured) ──────── */}
+            {googleEnabled && (
+              <>
+                <TouchableOpacity
+                  onPress={handleGoogleSignIn}
+                  activeOpacity={0.85}
+                  disabled={!request}
+                  className={`bg-white rounded-xl py-3.5 flex-row items-center justify-center border border-gray-200 ${!request ? 'opacity-50' : ''}`}
+                  style={{ gap: 10 }}
+                >
+                  <Ionicons name="logo-google" size={20} color="#4285F4" />
+                  <Text style={{ color: '#111827', fontWeight: '600', fontSize: 16 }}>
+                    Continue with Google
+                  </Text>
+                </TouchableOpacity>
 
-            <OrDivider />
+                <OrDivider />
+              </>
+            )}
 
             {/* ── Form fields ─────────────────────────────────────────────── */}
             <View style={{ gap: 16 }}>

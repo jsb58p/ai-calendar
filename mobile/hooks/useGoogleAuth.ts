@@ -11,11 +11,15 @@ WebBrowser.maybeCompleteAuthSession()
 export function useGoogleAuth() {
   const setCurrentUser = useAppStore((s) => s.setCurrentUser)
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    scopes: ['openid', 'email', 'profile'],
-  })
+  const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID
+  const webClientId     = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
+  const googleEnabled   = !!androidClientId && !!webClientId
+
+  const [request, response, promptAsync] = Google.useAuthRequest(
+    googleEnabled
+      ? { androidClientId, webClientId, scopes: ['openid', 'email', 'profile'] }
+      : null
+  )
 
   useEffect(() => {
     if (response?.type === 'success') {
@@ -39,5 +43,5 @@ export function useGoogleAuth() {
     }
   }
 
-  return { promptAsync, request }
+  return { promptAsync, request, googleEnabled }
 }
