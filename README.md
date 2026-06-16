@@ -149,6 +149,29 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment variable setup and 
 
 ---
 
+## Mobile App
+
+A React Native Android app built with Expo is available in the `mobile/` directory.
+
+```bash
+cd mobile && npm install
+npx expo start
+```
+
+Scan the QR code with **Expo Go** on your Android device.
+
+Create `mobile/.env` with:
+
+```
+EXPO_PUBLIC_API_URL=https://schedulerai-backend.onrender.com
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=   # optional — enables Google Sign-In
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=       # optional — enables Google Sign-In
+```
+
+**Mobile features:** goal creation with scheduling constraints, day-by-day task calendar, step-by-step task detail sheet, adaptive feedback with schedule re-generation, Google Calendar sync, feedback history, and admin panel (admin users only).
+
+---
+
 ## License
 
 MIT
