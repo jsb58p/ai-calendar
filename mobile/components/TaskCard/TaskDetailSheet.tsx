@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { useEffect, useMemo, useRef } from 'react'
 import {
-  BottomSheetModal,
-  BottomSheetBackdrop,
-} from '@gorhom/bottom-sheet'
-import type { BottomSheetBackdropProps } from '@gorhom/bottom-sheet'
+  Animated,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import Markdown from 'react-native-markdown-display'
 import {
   updateTaskStatus as patchTaskStatus,
@@ -27,8 +30,6 @@ const STATUS_LABEL: Record<Task['status'], string> = {
   complete: 'Complete',
   skipped:  'Skipped',
 }
-
-const SNAP_POINTS = ['50%', '90%']
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -57,7 +58,7 @@ interface Props {
 }
 
 export function TaskDetailSheet({ taskId, onClose }: Props) {
-  const sheetRef = useRef<BottomSheetModal>(null)
+  const slideAnim = useRef(new Animated.Value(0)).current
 
   const schedules         = useAppStore((s) => s.schedules)
   const googleTokens      = useAppStore((s) => s.googleTokens)
@@ -74,12 +75,17 @@ export function TaskDetailSheet({ taskId, onClose }: Props) {
     return { task: null, goalId: null }
   }, [taskId, schedules])
 
-  // Open / close imperatively when taskId changes
+  // Subtle scale animation on the panel when it becomes visible
   useEffect(() => {
     if (taskId) {
-      sheetRef.current?.present()
+      Animated.spring(slideAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 65,
+        friction: 11,
+      }).start()
     } else {
-      sheetRef.current?.dismiss()
+      slideAnim.setValue(0)
     }
   }, [taskId])
 
@@ -89,7 +95,7 @@ export function TaskDetailSheet({ taskId, onClose }: Props) {
     if (!taskId || !goalId) return
     updateStatusStore(taskId, status)
     patchTaskStatus(goalId, taskId, status).catch(console.error)
-    if (status === 'complete') sheetRef.current?.dismiss()
+    if (status === 'complete') onClose()
   }
 
   function handleStepToggle(stepIndex: number) {
@@ -107,181 +113,247 @@ export function TaskDetailSheet({ taskId, onClose }: Props) {
     syncAllTasks(goalId, googleTokens).catch(console.error)
   }
 
-  // ── Backdrop ───────────────────────────────────────────────────────────────
-
-  const renderBackdrop = useCallback(
-    (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.6}
-        pressBehavior="close"
-      />
-    ),
-    []
-  )
-
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <BottomSheetModal
-      ref={sheetRef}
-      index={0}
-      snapPoints={SNAP_POINTS}
-      enableDynamicSizing={false}
-      onDismiss={onClose}
-      backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: '#1a1a24' }}
-      handleIndicatorStyle={{ backgroundColor: '#5a5a72', width: 40 }}
+    <Modal
+      visible={taskId !== null}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+      statusBarTranslucent
     >
-      <View style={{ flex: 1 }}>
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+      {/* ── Backdrop ────────────────────────────────────────────────────────── */}
+      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' }}>
+        <TouchableOpacity
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          activeOpacity={1}
+          onPress={onClose}
+        />
+
+        {/* ── Panel ─────────────────────────────────────────────────────────── */}
+        <Animated.View
+          style={{
+            height: '85%',
+            backgroundColor: '#1a1a24',
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            opacity: slideAnim,
+          }}
         >
-          {!task ? (
-            <View className="py-12 items-center">
-              <Text className="text-text-muted text-sm">Loading task…</Text>
-            </View>
-          ) : (
-            <>
-              {/* ── Header ──────────────────────────────────────────────────── */}
-              <View className="mb-4">
-                <Text
-                  className="text-text-primary font-semibold text-lg mb-3"
-                  numberOfLines={4}
-                >
-                  {task.title}
-                </Text>
-                <View className="flex-row items-center gap-3">
-                  {/* Status badge */}
-                  <View
-                    style={{
-                      backgroundColor: `${STATUS_COLOR[task.status]}20`,
-                      borderColor: `${STATUS_COLOR[task.status]}40`,
-                      borderWidth: 1,
-                    }}
-                    className="rounded-full px-3 py-1"
+          {/* Drag handle */}
+          <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+            <View
+              style={{
+                width: 40,
+                height: 4,
+                backgroundColor: '#5a5a72',
+                borderRadius: 2,
+              }}
+            />
+          </View>
+
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ padding: 20, paddingBottom: 48 }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {!task ? (
+              <View style={{ paddingVertical: 48, alignItems: 'center' }}>
+                <Text style={{ color: '#5a5a72', fontSize: 14 }}>Loading task…</Text>
+              </View>
+            ) : (
+              <>
+                {/* ── Header ────────────────────────────────────────────────── */}
+                <View style={{ marginBottom: 16 }}>
+                  <Text
+                    style={{ color: '#f0f0ff', fontWeight: '600', fontSize: 18, marginBottom: 12 }}
+                    numberOfLines={4}
                   >
-                    <Text
-                      style={{ color: STATUS_COLOR[task.status] }}
-                      className="text-xs font-medium"
+                    {task.title}
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    {/* Status badge */}
+                    <View
+                      style={{
+                        backgroundColor: `${STATUS_COLOR[task.status]}20`,
+                        borderColor: `${STATUS_COLOR[task.status]}40`,
+                        borderWidth: 1,
+                        borderRadius: 999,
+                        paddingHorizontal: 12,
+                        paddingVertical: 4,
+                      }}
                     >
-                      {STATUS_LABEL[task.status]}
+                      <Text style={{ color: STATUS_COLOR[task.status], fontSize: 12, fontWeight: '500' }}>
+                        {STATUS_LABEL[task.status]}
+                      </Text>
+                    </View>
+                    <Text style={{ color: '#5a5a72', fontSize: 14, fontFamily: 'monospace' }}>
+                      {task.estimatedMinutes} min
                     </Text>
                   </View>
-                  <Text className="text-text-muted text-sm font-mono">
-                    {task.estimatedMinutes} min
+                </View>
+
+                {/* ── Meta row ──────────────────────────────────────────────── */}
+                <View
+                  style={{
+                    backgroundColor: '#0f0f1a',
+                    borderRadius: 12,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    marginBottom: 20,
+                  }}
+                >
+                  <Text style={{ color: '#8888a8', fontSize: 12, fontFamily: 'monospace' }}>
+                    {formatDate(task.scheduledDate.split('T')[0]!)}
                   </Text>
                 </View>
-              </View>
 
-              {/* ── Meta row ────────────────────────────────────────────────── */}
-              <View className="bg-bg-muted rounded-xl px-4 py-3 mb-5">
-                <Text className="text-text-secondary text-xs font-mono">
-                  {formatDate(task.scheduledDate.split('T')[0]!)}
-                </Text>
-              </View>
-
-              {/* ── Step-by-step instructions ──────────────────────────────── */}
-              {task.stepInstructions.length > 0 && (
-                <View className="mb-5">
-                  <Text className="text-text-muted text-xs font-mono uppercase tracking-widest mb-3">
-                    Steps
-                  </Text>
-                  {task.stepInstructions.map((step, i) => {
-                    const done = (task.completedSteps ?? []).includes(i)
-                    return (
-                      <TouchableOpacity
-                        key={i}
-                        onPress={() => handleStepToggle(i)}
-                        activeOpacity={0.7}
-                        className="flex-row items-start gap-3 mb-3"
-                      >
-                        {/* Checkbox */}
-                        <View
-                          className="items-center justify-center mt-0.5 flex-shrink-0"
-                          style={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: 4,
-                            borderWidth: 2,
-                            borderColor: done ? '#22c55e' : '#3a3a52',
-                            backgroundColor: done ? '#22c55e' : 'transparent',
-                          }}
+                {/* ── Step instructions ─────────────────────────────────────── */}
+                {task.stepInstructions.length > 0 && (
+                  <View style={{ marginBottom: 20 }}>
+                    <Text
+                      style={{
+                        color: '#5a5a72',
+                        fontSize: 11,
+                        fontFamily: 'monospace',
+                        textTransform: 'uppercase',
+                        letterSpacing: 1.5,
+                        marginBottom: 12,
+                      }}
+                    >
+                      Steps
+                    </Text>
+                    {task.stepInstructions.map((step, i) => {
+                      const done = (task.completedSteps ?? []).includes(i)
+                      return (
+                        <TouchableOpacity
+                          key={i}
+                          onPress={() => handleStepToggle(i)}
+                          activeOpacity={0.7}
+                          style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}
                         >
-                          {done && (
-                            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', lineHeight: 14 }}>
-                              ✓
-                            </Text>
-                          )}
-                        </View>
+                          {/* Checkbox */}
+                          <View
+                            style={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: 4,
+                              borderWidth: 2,
+                              borderColor: done ? '#22c55e' : '#3a3a52',
+                              backgroundColor: done ? '#22c55e' : 'transparent',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginTop: 2,
+                              flexShrink: 0,
+                            }}
+                          >
+                            {done && (
+                              <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700', lineHeight: 14 }}>
+                                ✓
+                              </Text>
+                            )}
+                          </View>
 
-                        {/* Step text via markdown */}
-                        <View style={{ flex: 1, opacity: done ? 0.5 : 1 }}>
-                          <Markdown style={MARKDOWN_STYLES}>{step}</Markdown>
-                        </View>
-                      </TouchableOpacity>
-                    )
-                  })}
-                </View>
-              )}
-
-              {/* ── Action buttons ──────────────────────────────────────────── */}
-              <View style={{ gap: 10 }}>
-                {/* Primary: Mark Complete */}
-                {task.status !== 'complete' && (
-                  <TouchableOpacity
-                    onPress={() => handleStatusChange('complete')}
-                    activeOpacity={0.85}
-                    className="bg-accent rounded-xl py-4 items-center"
-                  >
-                    <Text className="text-white font-semibold text-base">Mark Complete</Text>
-                  </TouchableOpacity>
-                )}
-
-                {/* Secondary row */}
-                {(task.status !== 'pending' || task.status !== 'skipped') && (
-                  <View className="flex-row" style={{ gap: 10 }}>
-                    {task.status !== 'pending' && (
-                      <TouchableOpacity
-                        onPress={() => handleStatusChange('pending')}
-                        activeOpacity={0.8}
-                        className="flex-1 bg-bg-surface border border-border-default rounded-xl py-3.5 items-center"
-                      >
-                        <Text className="text-text-primary font-medium text-sm">Mark Incomplete</Text>
-                      </TouchableOpacity>
-                    )}
-                    {task.status !== 'skipped' && (
-                      <TouchableOpacity
-                        onPress={() => handleStatusChange('skipped')}
-                        activeOpacity={0.8}
-                        className="flex-1 bg-danger/10 border border-danger/30 rounded-xl py-3.5 items-center"
-                      >
-                        <Text className="text-danger font-medium text-sm">Skip Task</Text>
-                      </TouchableOpacity>
-                    )}
+                          {/* Step text */}
+                          <View style={{ flex: 1, opacity: done ? 0.5 : 1 }}>
+                            <Markdown style={MARKDOWN_STYLES}>{step}</Markdown>
+                          </View>
+                        </TouchableOpacity>
+                      )
+                    })}
                   </View>
                 )}
 
-                {/* Google Calendar sync */}
-                {googleTokens && (
-                  <TouchableOpacity
-                    onPress={handleGoogleSync}
-                    activeOpacity={0.8}
-                    className="border border-border-default rounded-xl py-3.5 items-center"
-                  >
-                    <Text className="text-text-secondary text-sm">Sync to Google Calendar</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </>
-          )}
-        </ScrollView>
+                {/* ── Action buttons ────────────────────────────────────────── */}
+                <View style={{ gap: 10 }}>
+                  {task.status !== 'complete' && (
+                    <TouchableOpacity
+                      onPress={() => handleStatusChange('complete')}
+                      activeOpacity={0.85}
+                      style={{
+                        backgroundColor: '#6366f1',
+                        borderRadius: 12,
+                        paddingVertical: 16,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16 }}>
+                        Mark Complete
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {(task.status !== 'pending' || task.status !== 'skipped') && (
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                      {task.status !== 'pending' && (
+                        <TouchableOpacity
+                          onPress={() => handleStatusChange('pending')}
+                          activeOpacity={0.8}
+                          style={{
+                            flex: 1,
+                            backgroundColor: '#1e1e2e',
+                            borderWidth: 1,
+                            borderColor: '#2a2a3a',
+                            borderRadius: 12,
+                            paddingVertical: 14,
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Text style={{ color: '#f0f0ff', fontWeight: '500', fontSize: 14 }}>
+                            Mark Incomplete
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                      {task.status !== 'skipped' && (
+                        <TouchableOpacity
+                          onPress={() => handleStatusChange('skipped')}
+                          activeOpacity={0.8}
+                          style={{
+                            flex: 1,
+                            backgroundColor: 'rgba(239,68,68,0.1)',
+                            borderWidth: 1,
+                            borderColor: 'rgba(239,68,68,0.3)',
+                            borderRadius: 12,
+                            paddingVertical: 14,
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Text style={{ color: '#ef4444', fontWeight: '500', fontSize: 14 }}>
+                            Skip Task
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+
+                  {googleTokens && (
+                    <TouchableOpacity
+                      onPress={handleGoogleSync}
+                      activeOpacity={0.8}
+                      style={{
+                        borderWidth: 1,
+                        borderColor: '#2a2a3a',
+                        borderRadius: 12,
+                        paddingVertical: 14,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text style={{ color: '#8888a8', fontSize: 14 }}>
+                        Sync to Google Calendar
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </>
+            )}
+          </ScrollView>
+
+          {/* Bottom safe area padding */}
+          <SafeAreaView edges={['bottom']} />
+        </Animated.View>
       </View>
-    </BottomSheetModal>
+    </Modal>
   )
 }
