@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
-import { ScrollView, Text, View } from 'react-native'
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { Calendar } from 'react-native-calendars'
 import type { DateData } from 'react-native-calendars'
 import { TaskChip } from '../TaskCard/TaskChip'
 import { TaskDetailSheet } from '../TaskCard/TaskDetailSheet'
+import { FeedbackModal } from '../Feedback/FeedbackModal'
+import { Toast } from '../ui/Toast'
 import { useAppStore } from '../../store/useAppStore'
 import type { Schedule } from '../../types'
 
@@ -45,7 +47,11 @@ interface Props {
 export function CalendarScreen({ schedule }: Props) {
   const selectedTaskId    = useAppStore((s) => s.selectedTaskId)
   const setSelectedTaskId = useAppStore((s) => s.setSelectedTaskId)
-  const [selectedDate, setSelectedDate] = useState(TODAY)
+  const toastMessage      = useAppStore((s) => s.toastMessage)
+  const setToastMessage   = useAppStore((s) => s.setToastMessage)
+
+  const [selectedDate,    setSelectedDate]    = useState(TODAY)
+  const [feedbackVisible, setFeedbackVisible] = useState(false)
 
   // ── Progress stats ─────────────────────────────────────────────────────────
 
@@ -67,13 +73,11 @@ export function CalendarScreen({ schedule }: Props) {
     }
     const marks: Record<string, Mark> = {}
 
-    // Dot for every date that has tasks
     for (const task of schedule.tasks) {
       const d = toDateKey(task.scheduledDate)
       marks[d] = { marked: true, dotColor: '#6366f1' }
     }
 
-    // Today: subtle tint (when it is not the active selection)
     if (selectedDate !== TODAY) {
       marks[TODAY] = {
         ...(marks[TODAY] ?? {}),
@@ -83,11 +87,9 @@ export function CalendarScreen({ schedule }: Props) {
       }
     }
 
-    // Active selected day: solid indigo via theme (no selectedColor → uses theme default)
     marks[selectedDate] = {
       ...(marks[selectedDate] ?? {}),
       selected: true,
-      // white dot so it stays visible on the solid indigo background
       dotColor: marks[selectedDate]?.marked ? '#ffffff' : '#6366f1',
     }
 
@@ -110,13 +112,19 @@ export function CalendarScreen({ schedule }: Props) {
   return (
     <View className="flex-1 bg-bg-base">
 
-      {/* ── Progress bar ──────────────────────────────────────────────────── */}
+      {/* ── Progress bar + feedback button ────────────────────────────────── */}
       <View className="px-4 pt-3 pb-3 bg-bg-surface border-b border-border-default">
         <View className="flex-row justify-between items-center mb-2">
           <Text className="text-text-secondary text-xs font-mono">
-            {completed}/{total} tasks complete
+            {completed}/{total} tasks · {pct}%
           </Text>
-          <Text className="text-accent text-xs font-mono font-semibold">{pct}%</Text>
+          <TouchableOpacity
+            onPress={() => setFeedbackVisible(true)}
+            hitSlop={8}
+            activeOpacity={0.7}
+          >
+            <Text className="text-accent text-xs font-medium">Give Feedback</Text>
+          </TouchableOpacity>
         </View>
         <View className="h-1 bg-bg-muted rounded-full overflow-hidden">
           <View
@@ -143,14 +151,12 @@ export function CalendarScreen({ schedule }: Props) {
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Section header */}
         <Text className="text-text-muted text-xs font-mono uppercase tracking-widest mb-3">
           {tasksForDate.length > 0
             ? `Tasks for ${formatSectionDate(selectedDate)}`
             : 'No tasks scheduled'}
         </Text>
 
-        {/* Tasks */}
         {tasksForDate.length === 0 ? (
           <Text className="text-text-muted text-sm text-center py-6">
             No tasks scheduled for this day.
@@ -166,10 +172,22 @@ export function CalendarScreen({ schedule }: Props) {
         )}
       </ScrollView>
 
+      {/* ── Modals + overlays ─────────────────────────────────────────────── */}
       <TaskDetailSheet
         taskId={selectedTaskId}
         onClose={() => setSelectedTaskId(null)}
       />
+
+      <FeedbackModal
+        visible={feedbackVisible}
+        onClose={() => setFeedbackVisible(false)}
+      />
+
+      <Toast
+        message={toastMessage}
+        onDismiss={() => setToastMessage(null)}
+      />
+
     </View>
   )
 }
