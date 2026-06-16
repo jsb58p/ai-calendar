@@ -36,13 +36,6 @@ export default function AppLayout() {
           name="index"
           options={{
             title: 'Home',
-            tabBarIcon: tabIcon('home-outline', 'home'),
-          }}
-        />
-        <Tabs.Screen
-          name="calendar"
-          options={{
-            title: 'Calendar',
             tabBarIcon: tabIcon('calendar-outline', 'calendar'),
           }}
         />

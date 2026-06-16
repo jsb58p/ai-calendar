@@ -63,7 +63,7 @@ export function FeedbackHistory() {
   if (entries.length === 0) {
     return (
       <Text className="text-text-muted text-sm text-center py-4">
-        No feedback yet. Submit your first review from the Calendar tab.
+        No feedback yet. Submit your first review from the Home tab.
       </Text>
     )
   }
