@@ -5,7 +5,9 @@
     "scheme": "schedulerai",
     "version": "1.0.0",
     "orientation": "portrait",
-    "platforms": ["android"],
+    "platforms": [
+      "android"
+    ],
     "android": {
       "package": "com.schedulerai.app",
       "adaptiveIcon": {
@@ -16,8 +18,15 @@
       "intentFilters": [
         {
           "action": "VIEW",
-          "data": [{ "scheme": "schedulerai" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "schedulerai"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -28,6 +37,12 @@
     "userInterfaceStyle": "dark",
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "801f2013-a8de-462a-b6c5-26d2c236f460"
+      }
     }
   }
 }
