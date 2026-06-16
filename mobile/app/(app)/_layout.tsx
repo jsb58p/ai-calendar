@@ -15,6 +15,7 @@ function tabIcon(name: IoniconName, focusedName: IoniconName) {
 export default function AppLayout() {
   const toastMessage    = useAppStore((s) => s.toastMessage)
   const setToastMessage = useAppStore((s) => s.setToastMessage)
+  const currentUser     = useAppStore((s) => s.currentUser)
 
   return (
     <View style={{ flex: 1 }}>
@@ -57,6 +58,14 @@ export default function AppLayout() {
           options={{
             title: 'Settings',
             tabBarIcon: tabIcon('settings-outline', 'settings'),
+          }}
+        />
+        <Tabs.Screen
+          name="admin"
+          options={{
+            href: currentUser?.isAdmin ? undefined : null,
+            title: 'Admin',
+            tabBarIcon: tabIcon('shield-outline', 'shield'),
           }}
         />
       </Tabs>
