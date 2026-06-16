@@ -160,7 +160,10 @@ export function CalendarScreen({ schedule }: Props) {
             <TaskChip
               key={task.id}
               task={task}
-              onPress={() => setSelectedTaskId(task.id)}
+              onPress={() => {
+                console.log('CalendarScreen: setting selectedTaskId to', task.id)
+                setSelectedTaskId(task.id)
+              }}
             />
           ))
         )}

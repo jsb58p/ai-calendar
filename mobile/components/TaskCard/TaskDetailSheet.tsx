@@ -58,6 +58,7 @@ interface Props {
 }
 
 export function TaskDetailSheet({ taskId, onClose }: Props) {
+  console.log('TaskDetailSheet render, taskId prop:', taskId)
   const sheetRef = useRef<BottomSheetModal>(null)
 
   const schedules         = useAppStore((s) => s.schedules)
@@ -77,7 +78,9 @@ export function TaskDetailSheet({ taskId, onClose }: Props) {
 
   // Open / close imperatively when taskId changes
   useEffect(() => {
+    console.log('TaskDetailSheet useEffect fired, taskId:', taskId)
     if (taskId) {
+      console.log('Calling present(), sheetRef.current:', sheetRef.current)
       sheetRef.current?.present()
     } else {
       sheetRef.current?.dismiss()
