@@ -45,6 +45,41 @@ open http://localhost:5173
 
 ---
 
+## Mobile Development Setup
+
+### Prerequisites
+
+- Android device with **Expo Go** installed ([Google Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent))
+- Node.js v18+
+- The backend running locally or pointed at the deployed instance
+
+### Setup
+
+```bash
+cd mobile
+npm install
+
+# Create mobile/.env
+cp mobile/.env.example mobile/.env
+# Edit mobile/.env — set EXPO_PUBLIC_API_URL
+
+npx expo start --clear
+```
+
+Scan the QR code with Expo Go on your Android device.
+
+### Mobile Environment Variables
+
+| Variable | Purpose |
+|---|---|
+| `EXPO_PUBLIC_API_URL` | Backend base URL (e.g. `https://schedulerai-backend.onrender.com`) |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Google OAuth web client ID — optional, enables Google Sign-In |
+| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | Google OAuth Android client ID — optional, enables Google Sign-In |
+
+Google Sign-In is gracefully disabled when either client ID is absent — the button simply does not render.
+
+---
+
 ## Admin Setup
 
 After starting the app locally (or after first deploy to production), promote your own account to admin so you can access the Admin Panel:
@@ -118,6 +153,33 @@ ai-calendar/
 │   │       └── diff.ts                # Schedule diff computation
 │   ├── package.json
 │   └── vite.config.ts
+├── mobile/
+│   ├── app/                           # expo-router screens
+│   │   ├── index.tsx                  # Auth gate (getMe → redirect)
+│   │   ├── (auth)/
+│   │   │   ├── login.tsx              # Login + Register + Google Sign-In
+│   │   │   └── verified.tsx           # Email verified success
+│   │   └── (app)/
+│   │       ├── _layout.tsx            # Tab bar layout + global Toast
+│   │       ├── index.tsx              # Home: GoalInput or CalendarScreen
+│   │       ├── goals.tsx              # Goal switcher list
+│   │       ├── settings.tsx           # Settings + Google Calendar + Feedback History
+│   │       └── admin.tsx              # Admin panel (admin users only)
+│   ├── api/
+│   │   └── client.ts                  # Axios client with SecureStore JWT interceptor
+│   ├── components/
+│   │   ├── ui/                        # Button, Input, Card, Badge, Toast
+│   │   ├── Calendar/                  # CalendarScreen, TaskChip
+│   │   ├── TaskCard/                  # TaskDetailSheet (RN Modal bottom sheet)
+│   │   ├── Feedback/                  # FeedbackModal, FeedbackHistory
+│   │   └── GoalInput/                 # GoalInputScreen
+│   ├── hooks/
+│   │   ├── useGoogleAuth.ts           # Google Sign-In via expo-auth-session
+│   │   └── useGoogleCalendarAuth.ts   # Google Calendar OAuth + SecureStore
+│   ├── store/
+│   │   └── useAppStore.ts             # Zustand store (in-memory, no localStorage)
+│   └── types/
+│       └── index.ts                   # Shared TypeScript types (shared with backend shape)
 ├── tests/                             # Playwright E2E tests
 ├── docs/                              # This documentation
 ├── render.yaml                        # Render deployment config

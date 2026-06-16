@@ -4,7 +4,7 @@
 
 ![Node.js](https://img.shields.io/badge/node-%3E%3D18-brightgreen)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
-![Tests](https://img.shields.io/badge/tests-313%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-311%20passing-brightgreen)
 ![Deployed on Vercel](https://img.shields.io/badge/deployed%20on-Vercel-black)
 
 ---
@@ -14,6 +14,49 @@
 **[schedulerai-frontend-eta.vercel.app](https://schedulerai-frontend-eta.vercel.app)**
 
 > The backend runs on Render's free tier and may take 30–60 seconds to wake from idle on first load.
+
+---
+
+## 📱 Mobile App (Android)
+
+A full-featured React Native Android app built with Expo.
+
+### Prerequisites
+- Android phone with **Expo Go** installed ([Google Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent))
+- Node.js v18+
+
+### Run Locally
+
+```bash
+cd mobile
+npx expo start --clear
+```
+
+Scan the QR code with Expo Go on your Android device.
+
+### Environment Variables
+
+Create `mobile/.env`:
+
+```
+EXPO_PUBLIC_API_URL=https://schedulerai-backend.onrender.com
+EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your_google_web_client_id       # optional — enables Google Sign-In
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=your_android_client_id      # optional — enables Google Sign-In
+```
+
+### Mobile Features
+
+Same capabilities as the web app:
+
+- Email/password + Google Sign-In
+- AI schedule generation with scheduling constraints
+- Calendar view with task management
+- Step-by-step task instructions (markdown rendered)
+- Feedback + adaptive rescheduling
+- Settings with day toggles, time windows, duration limits, blackout dates
+- Goal switcher
+- Admin panel (admin users only)
+- Google Calendar sync
 
 ---
 
@@ -127,10 +170,10 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for sequence diagrams covering 
 ## Testing
 
 ```bash
-# Backend unit tests — 57 tests
+# Backend unit tests — 61 tests
 cd backend && npm test
 
-# Frontend unit tests — 248 tests (enforces 80% coverage threshold)
+# Frontend unit tests — 242 tests (enforces 80% coverage threshold)
 cd frontend && npm run test:coverage
 
 # E2E tests — 8 tests (requires both dev servers running)
@@ -146,29 +189,6 @@ GitHub Actions runs all three suites automatically on every push and pull reques
 Both Vercel and Render are connected to this GitHub repository and auto-deploy on every push to `master`. No manual deploy steps needed.
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for environment variable setup and known limitations (Render cold starts, Google OAuth testing mode, MongoDB storage cap).
-
----
-
-## Mobile App
-
-A React Native Android app built with Expo is available in the `mobile/` directory.
-
-```bash
-cd mobile && npm install
-npx expo start
-```
-
-Scan the QR code with **Expo Go** on your Android device.
-
-Create `mobile/.env` with:
-
-```
-EXPO_PUBLIC_API_URL=https://schedulerai-backend.onrender.com
-EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID=   # optional — enables Google Sign-In
-EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=       # optional — enables Google Sign-In
-```
-
-**Mobile features:** goal creation with scheduling constraints, day-by-day task calendar, step-by-step task detail sheet, adaptive feedback with schedule re-generation, Google Calendar sync, feedback history, and admin panel (admin users only).
 
 ---
 

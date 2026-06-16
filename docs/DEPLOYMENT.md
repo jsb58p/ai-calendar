@@ -41,6 +41,16 @@ Set these in the Render service dashboard under **Environment → Environment Va
 
 Set this in the Vercel project dashboard under **Settings → Environment Variables**. The value is also committed in `frontend/.env.production` so Vercel picks it up automatically during builds.
 
+### Mobile (local `mobile/.env`)
+
+| Variable | Purpose |
+|---|---|
+| `EXPO_PUBLIC_API_URL` | Backend base URL |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Google OAuth web client ID (optional) |
+| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | Google OAuth Android client ID (optional) |
+
+These variables are prefixed `EXPO_PUBLIC_` so Expo inlines them at bundle time. They are gitignored — never commit `mobile/.env`.
+
 ---
 
 ## Deploy Process
@@ -84,3 +94,36 @@ Google OAuth access tokens expire after 1 hour. The app stores the refresh token
 
 **Google Calendar tokens in localStorage**
 Google Calendar OAuth tokens (`access_token`, `refresh_token`) are stored in `localStorage` only — they are not persisted server-side. Users must reconnect Google Calendar if they clear browser storage, switch devices, or use a different browser.
+
+---
+
+## Mobile Deployment
+
+The mobile app currently runs via Expo Go for development. To build a standalone APK for distribution:
+
+```bash
+# 1. Create a free account at expo.dev
+# 2. Install EAS CLI
+npm install -g eas-cli
+
+# 3. Login
+eas login
+
+# 4. Configure the build profile (run once)
+cd mobile && eas build:configure
+
+# 5. Build a preview APK (sideloadable)
+eas build --platform android --profile preview
+```
+
+Download the `.apk` from the Expo dashboard at [expo.dev](https://expo.dev) and install it on your Android device.
+
+For Google Play Store distribution:
+
+```bash
+eas build --platform android --profile production
+```
+
+Then submit via `eas submit --platform android`.
+
+> **Note:** Google Sign-In on a standalone build requires an Android OAuth client ID with the app's **SHA-1 signing certificate fingerprint** registered in Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client IDs. The SHA-1 can be retrieved from the EAS build details page after the first production build.

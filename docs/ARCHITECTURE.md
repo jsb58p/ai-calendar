@@ -11,6 +11,7 @@ SchedulerAI is a full-stack AI-powered scheduling application. It follows a thre
 ```mermaid
 graph TD
   User["👤 User (Browser)"]
+  Android["Android App\nReact Native + Expo\nExpo Go / Standalone APK"]
   Vercel["Vercel CDN\nReact + Vite\nschedulerai-frontend-eta.vercel.app"]
   Render["Render\nNode.js + Express\nschedulerai-backend.onrender.com"]
   Anthropic["Anthropic API\nclaude-sonnet-4-6\nGoal decomposition\nAdaptive rescheduling"]
@@ -20,6 +21,8 @@ graph TD
 
   User -->|"HTTPS"| Vercel
   Vercel -->|"REST API + Bearer JWT\nHTTPS"| Render
+  Android -->|"REST API + Bearer JWT\nHTTPS"| Render
+  Android -->|"expo-auth-session\nOAuth"| Google
   Render -->|"Claude API\nJSON prompts"| Anthropic
   Render -->|"MongoDB driver\nTLS"| MongoDB
   Render -->|"googleapis SDK\nOAuth tokens"| Google
@@ -183,6 +186,72 @@ Key store slices:
 
 ---
 
+## Mobile Architecture (React Native + Expo)
+
+### Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Expo SDK 54 / React Native 0.81 |
+| Navigation | expo-router v3 (file-based, tab + stack) |
+| Auth / OAuth | expo-auth-session (Google Sign-In + Calendar OAuth) |
+| Secure storage | expo-secure-store (JWT token, replaces `localStorage`) |
+| Data fetching | @tanstack/react-query |
+| State management | Zustand v5 (same pattern as web) |
+| Styling | NativeWind v3 + Tailwind CSS v3 |
+| Calendar grid | react-native-calendars |
+| Date/time inputs | @react-native-community/datetimepicker |
+| Markdown rendering | react-native-markdown-display |
+
+### Screen Structure
+
+```
+mobile/app/
+├── index.tsx                Auth gate — calls GET /api/auth/users/me, redirects
+├── (auth)/
+│   ├── login.tsx            Login + Register (email/password + Google Sign-In)
+│   └── verified.tsx         Email verified success screen
+└── (app)/                   Authenticated tab screens
+    ├── _layout.tsx          Tab bar: Home · Goals · Settings · Admin (admin only)
+    ├── index.tsx            Home — GoalInputScreen or CalendarScreen
+    ├── goals.tsx            Goal switcher (open / delete goals)
+    ├── settings.tsx         Settings + Google Calendar + Feedback History
+    └── admin.tsx            Admin panel (users list, suspend/delete/reset)
+```
+
+### Component Structure
+
+```
+mobile/components/
+├── ui/                      Button, Input, Card, Badge, Toast
+├── Calendar/
+│   └── CalendarScreen.tsx   react-native-calendars grid + task list + progress bar
+├── TaskCard/
+│   ├── TaskChip.tsx         Status-coloured task row (left accent bar)
+│   └── TaskDetailSheet.tsx  RN Modal bottom sheet — steps, status actions, Google sync
+├── Feedback/
+│   ├── FeedbackModal.tsx    Star rating, scope pills, notes input
+│   └── FeedbackHistory.tsx  FlatList of past feedback entries per goal
+├── GoalInput/
+│   └── GoalInputScreen.tsx  Goal form with date picker and scheduling constraints
+├── Header.tsx               SafeAreaView top bar with optional right action
+└── ScreenWrapper.tsx        SafeAreaView bottom + optional ScrollView
+```
+
+### Key Differences from Web
+
+| Concern | Web | Mobile |
+|---|---|---|
+| JWT storage | `localStorage` | `expo-secure-store` (encrypted Android Keystore) |
+| Auth header | axios interceptor reads `localStorage` | axios interceptor calls `SecureStore.getItemAsync()` |
+| Bottom sheets | Custom modal components | React Native `Modal` (`animationType="slide"`) |
+| Styling | Tailwind CSS v4 (`@theme` blocks) | NativeWind v3 + Tailwind v3 (`tailwind.config.js`) |
+| Date inputs | `<input type="date">` | Platform-split: Android dialog / iOS bottom sheet |
+| Google Calendar OAuth | Server-side redirect flow | `expo-auth-session` + `POST /api/calendar/connect-mobile` |
+| Markdown | `react-markdown` | `react-native-markdown-display` |
+
+---
+
 ## Backend Architecture
 
 ### Route Structure
@@ -219,6 +288,7 @@ POST   /api/feedback                       — Submit feedback, adapt schedule
 — Calendar (JWT required) —
 POST   /api/calendar/sync                  — Sync single task to Google Calendar
 POST   /api/calendar/sync-all             — Sync all tasks for a goal
+POST   /api/calendar/connect-mobile       — Accept OAuth tokens from mobile app (expo-auth-session)
 
 — Admin (JWT + isAdmin required) —
 GET    /api/admin/users                    — List all users with goal counts

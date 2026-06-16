@@ -173,3 +173,39 @@ The axios interceptor (`api.interceptors.request.use(...)`) reads `localStorage.
 **Reasoning:** A single optional boolean on the existing document is the simplest possible solution. No additional collection, no role join, no migration. The `requireAdmin` middleware checks `req.user?.isAdmin` after `requireAuth` has already verified the JWT and attached the user — adding the flag to the JWT payload means the check is O(1) with no additional DB call.
 
 **Trade-offs:** Admin status is baked into the JWT at login time. If an admin revokes another user's admin status, that user's existing JWT still carries `isAdmin: true` until expiry (up to 7 days). For the current use case (small user base, trusted admins), this is acceptable. A future mitigation would be a token blocklist or shorter JWT TTL for admin actions.
+
+---
+
+## 14. React Native `Modal` over `@gorhom/bottom-sheet` for Android
+
+**Context:** The task detail screen needed a bottom sheet on Android. `@gorhom/bottom-sheet` v5 is the standard choice for React Native bottom sheets.
+
+**Decision:** Use React Native's built-in `Modal` (`animationType="slide"`, `transparent`) instead of `@gorhom/bottom-sheet`.
+
+**Reasoning:** `@gorhom/bottom-sheet` v5 with `enableDynamicSizing={false}` and `BottomSheetScrollView` collapses to zero height on Android when used inside a `BottomSheetModal`. The root cause is a Yoga layout conflict with Reanimated v3 worklets — the sheet measures as `height: 0` on the first render pass and never recovers. This was reproducible across all tested configurations (index prop, snap points, View wrappers). React Native's `Modal` is a guaranteed primitive that renders in a system overlay, bypassing all Yoga layout constraints.
+
+**Trade-offs:** Loses gesture-driven drag-to-dismiss. A `TouchableOpacity` backdrop covering the scrim provides tap-to-dismiss with equivalent UX. The `Animated.spring` opacity animation on the panel provides a subtle open animation.
+
+---
+
+## 15. NativeWind v3 + Tailwind CSS v3 for React Native styling
+
+**Context:** The web app uses a custom dark-mode design system with semantic tokens (`bg-bg-surface`, `text-text-primary`, etc.) defined in Tailwind v4 `@theme` blocks. The mobile app needed the same token set.
+
+**Decision:** Use NativeWind v3 with Tailwind CSS v3 (not v4) for the mobile app. Duplicate the design token definitions in `mobile/tailwind.config.js`.
+
+**Reasoning:** NativeWind v4 requires Tailwind CSS v4 and uses a completely different babel transform pipeline that is not stable for Expo SDK 54. NativeWind v3 is production-ready, well-tested with Expo, and uses a standard `tailwind.config.js` extending the same token names. The duplicated token definitions are an acceptable cost given the otherwise shared design language.
+
+**Trade-offs:** Design tokens exist in two places (`frontend/src/index.css` and `mobile/tailwind.config.js`). A future improvement would extract the token values into a shared JS/JSON config consumed by both. Tailwind v4 features (Lightning CSS, `@import` syntax, container queries) are unavailable on mobile.
+
+---
+
+## 16. `expo-secure-store` over `localStorage` for JWT on mobile
+
+**Context:** JWT tokens need secure persistent storage on Android. `localStorage` does not exist in React Native.
+
+**Decision:** Use `expo-secure-store` for all JWT token storage. Read the token asynchronously in an axios request interceptor before each API call.
+
+**Reasoning:** `expo-secure-store` uses the Android Keystore system (AES-256 encrypted) for storage, making it the secure equivalent of httpOnly cookies on mobile. The token is read with `await SecureStore.getItemAsync('auth_token')` inside the interceptor; axios will wait for the promise before dispatching the request.
+
+**Trade-offs:** SecureStore reads are async, while `localStorage` reads are synchronous. This means the axios interceptor must be `async` and return a promise, which adds a small per-request overhead (typically < 1 ms once the OS has the key cached). On app cold start, the interceptor may fire before the auth gate (`app/index.tsx`) has finished its `getMe()` call — this is safe because unauthenticated API calls simply receive a 401 and the auth gate handles the redirect.
