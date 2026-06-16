@@ -59,6 +59,8 @@ export default function LoginScreen() {
   const [loading, setLoading]                 = useState(false)
   const [error, setError]                     = useState<string | null>(null)
   const [resending, setResending]             = useState(false)
+  const [showPassword, setShowPassword]               = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const showUnverifiedBanner = currentUser !== null && !currentUser.emailVerified
 
@@ -124,6 +126,8 @@ export default function LoginScreen() {
     setError(null)
     setPassword('')
     setConfirmPassword('')
+    setShowPassword(false)
+    setShowConfirmPassword(false)
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -219,10 +223,31 @@ export default function LoginScreen() {
                 placeholder={mode === 'register' ? 'At least 8 characters' : 'Your password'}
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
                 returnKeyType={mode === 'register' ? 'next' : 'done'}
                 onSubmitEditing={mode === 'login' ? handleSubmit : undefined}
+                rightElement={
+                  <TouchableOpacity
+                    onPress={() => setShowPassword((v) => !v)}
+                    style={{
+                      position: 'absolute',
+                      right: 12,
+                      top: 0,
+                      bottom: 0,
+                      justifyContent: 'center',
+                      padding: 4,
+                    }}
+                    hitSlop={8}
+                    activeOpacity={0.6}
+                  >
+                    <Ionicons
+                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                      size={20}
+                      color="#5a5a72"
+                    />
+                  </TouchableOpacity>
+                }
               />
               {mode === 'register' && (
                 <Input
@@ -230,10 +255,31 @@ export default function LoginScreen() {
                   placeholder="Repeat your password"
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  secureTextEntry
+                  secureTextEntry={!showConfirmPassword}
                   autoComplete="new-password"
                   returnKeyType="done"
                   onSubmitEditing={handleSubmit}
+                  rightElement={
+                    <TouchableOpacity
+                      onPress={() => setShowConfirmPassword((v) => !v)}
+                      style={{
+                        position: 'absolute',
+                        right: 12,
+                        top: 0,
+                        bottom: 0,
+                        justifyContent: 'center',
+                        padding: 4,
+                      }}
+                      hitSlop={8}
+                      activeOpacity={0.6}
+                    >
+                      <Ionicons
+                        name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                        size={20}
+                        color="#5a5a72"
+                      />
+                    </TouchableOpacity>
+                  }
                 />
               )}
             </View>
