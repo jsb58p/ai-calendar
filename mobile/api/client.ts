@@ -4,7 +4,7 @@ import type { GoalInput, Schedule, Task, UserSettings, CurrentUser, AdminUser } 
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:3001'
 
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: `${API_URL}/api`,
   timeout: 30000,
 })

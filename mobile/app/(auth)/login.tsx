@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -7,6 +7,7 @@ import { Input } from '../../components/ui/Input'
 import { Button } from '../../components/ui/Button'
 import { login, register, resendVerification } from '../../api/client'
 import { useAppStore } from '../../store/useAppStore'
+import { useGoogleAuth } from '../../hooks/useGoogleAuth'
 
 type Mode = 'login' | 'register'
 
@@ -41,6 +42,14 @@ export default function LoginScreen() {
   const currentUser     = useAppStore((s) => s.currentUser)
   const setCurrentUser  = useAppStore((s) => s.setCurrentUser)
   const setToastMessage = useAppStore((s) => s.setToastMessage)
+  const { promptAsync, request } = useGoogleAuth()
+
+  // Navigate when Google auth completes (it sets currentUser without navigating directly)
+  useEffect(() => {
+    if (currentUser) {
+      router.replace('/(app)/' as never)
+    }
+  }, [currentUser])
 
   const [mode, setMode]                       = useState<Mode>('login')
   const [email, setEmail]                     = useState('')
@@ -106,9 +115,8 @@ export default function LoginScreen() {
     }
   }
 
-  // Google OAuth — implemented in next block
-  async function handleGoogleSignIn() {
-    setError('Google sign-in coming soon — use email for now')
+  function handleGoogleSignIn() {
+    promptAsync()
   }
 
   function switchMode() {
@@ -167,7 +175,8 @@ export default function LoginScreen() {
             <TouchableOpacity
               onPress={handleGoogleSignIn}
               activeOpacity={0.85}
-              className="bg-white rounded-xl py-3.5 flex-row items-center justify-center border border-gray-200"
+              disabled={!request}
+              className={`bg-white rounded-xl py-3.5 flex-row items-center justify-center border border-gray-200 ${!request ? 'opacity-50' : ''}`}
               style={{ gap: 10 }}
             >
               <Ionicons name="logo-google" size={20} color="#4285F4" />

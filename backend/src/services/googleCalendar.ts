@@ -45,6 +45,16 @@ export async function getGoogleUserInfo(
   return { googleId: data.sub, email: data.email, displayName: data.name }
 }
 
+export async function getGoogleUserInfoFromToken(
+  accessToken: string
+): Promise<{ googleId: string; email: string; displayName: string }> {
+  const { data } = await axios.get<{ sub: string; email: string; name: string }>(
+    'https://www.googleapis.com/oauth2/v3/userinfo',
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  )
+  return { googleId: data.sub, email: data.email, displayName: data.name }
+}
+
 export function getAuthUrl(state?: string): string {
   const client = getOAuthClient()
   return client.generateAuthUrl({

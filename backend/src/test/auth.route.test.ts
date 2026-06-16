@@ -43,6 +43,7 @@ vi.mock('jsonwebtoken', () => ({
 vi.mock('../services/googleCalendar', () => ({
   getGoogleAuthUrl: vi.fn().mockReturnValue('https://accounts.google.com/auth'),
   getGoogleUserInfo: vi.fn(),
+  getGoogleUserInfoFromToken: vi.fn(),
   getAuthOAuthClient: vi.fn(),
   getOAuthClient: vi.fn(),
   getAuthUrl: vi.fn(),
@@ -54,8 +55,9 @@ vi.mock('../services/googleCalendar', () => ({
 
 import { authUsersRouter } from '../routes/auth-users'
 import { errorHandler } from '../middleware/errorHandler'
-import { getUserByEmail, getUserById, clearVerificationToken } from '../services/db'
+import { getUserByEmail, getUserById, getUserByGoogleId, saveUser, updateUser, clearVerificationToken } from '../services/db'
 import { sendVerificationEmail } from '../services/email'
+import { getGoogleUserInfoFromToken } from '../services/googleCalendar'
 import jwt from 'jsonwebtoken'
 
 // ---------------------------------------------------------------------------
@@ -101,6 +103,7 @@ beforeEach(() => {
   // Default: no existing user, bcrypt resolves, jwt works
   vi.mocked(getUserByEmail).mockResolvedValue(undefined)
   vi.mocked(getUserById).mockResolvedValue(undefined)
+  vi.mocked(getUserByGoogleId).mockResolvedValue(undefined)
   mockFindOne.mockResolvedValue(null)
 })
 
@@ -338,5 +341,80 @@ describe('GET /api/auth/users/me', () => {
 
     expect(res.status).toBe(200)
     expect(res.body.user).toMatchObject({ id: 'user-1', email: 'test@example.com' })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// POST /google/mobile — mobile Google Sign-In
+// ---------------------------------------------------------------------------
+
+describe('POST /api/auth/users/google/mobile', () => {
+  it('18: new Google user is created and returns 200 with token', async () => {
+    vi.mocked(getGoogleUserInfoFromToken).mockResolvedValueOnce({
+      googleId: 'google-new-123',
+      email: 'new-google@example.com',
+      displayName: 'New Google User',
+    })
+    vi.mocked(getUserByGoogleId).mockResolvedValueOnce(undefined)
+    vi.mocked(getUserByEmail).mockResolvedValueOnce(undefined)
+
+    const res = await request(app)
+      .post('/api/auth/users/google/mobile')
+      .send({ accessToken: 'valid-google-access-token' })
+
+    expect(res.status).toBe(200)
+    expect(res.body.user).toMatchObject({
+      email: 'new-google@example.com',
+      displayName: 'New Google User',
+      emailVerified: true,
+    })
+    expect(typeof res.body.token).toBe('string')
+    expect(res.body.user.passwordHash).toBeUndefined()
+    expect(vi.mocked(saveUser)).toHaveBeenCalledOnce()
+  })
+
+  it('19: existing Google user returns 200 and refreshes displayName', async () => {
+    vi.mocked(getGoogleUserInfoFromToken).mockResolvedValueOnce({
+      googleId: 'google-sub-123',
+      email: 'google@example.com',
+      displayName: 'Updated Name',
+    })
+    vi.mocked(getUserByGoogleId).mockResolvedValueOnce(MOCK_GOOGLE_USER)
+
+    const res = await request(app)
+      .post('/api/auth/users/google/mobile')
+      .send({ accessToken: 'valid-google-access-token' })
+
+    expect(res.status).toBe(200)
+    expect(res.body.user.email).toBe('google@example.com')
+    expect(vi.mocked(updateUser)).toHaveBeenCalledWith(MOCK_GOOGLE_USER.id, { displayName: 'Updated Name' })
+    expect(vi.mocked(saveUser)).not.toHaveBeenCalled()
+  })
+
+  it('20: email collision links Google ID to existing password account', async () => {
+    vi.mocked(getGoogleUserInfoFromToken).mockResolvedValueOnce({
+      googleId: 'google-new-456',
+      email: 'test@example.com',
+      displayName: 'Test User Google',
+    })
+    vi.mocked(getUserByGoogleId).mockResolvedValueOnce(undefined)
+    vi.mocked(getUserByEmail).mockResolvedValueOnce(MOCK_USER)
+
+    const res = await request(app)
+      .post('/api/auth/users/google/mobile')
+      .send({ accessToken: 'valid-google-access-token' })
+
+    expect(res.status).toBe(200)
+    expect(vi.mocked(updateUser)).toHaveBeenCalledWith(MOCK_USER.id, { googleId: 'google-new-456' })
+    expect(vi.mocked(saveUser)).not.toHaveBeenCalled()
+  })
+
+  it('21: missing accessToken returns 400', async () => {
+    const res = await request(app)
+      .post('/api/auth/users/google/mobile')
+      .send({})
+
+    expect(res.status).toBe(400)
+    expect(res.body.error).toMatch(/access token/i)
   })
 })

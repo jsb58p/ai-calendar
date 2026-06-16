@@ -13,7 +13,7 @@ import {
 } from '../services/db'
 import { sendVerificationEmail } from '../services/email'
 import { generateToken, setAuthCookie, clearAuthCookie, requireAuth } from '../middleware/auth'
-import { getGoogleAuthUrl, getGoogleUserInfo } from '../services/googleCalendar'
+import { getGoogleAuthUrl, getGoogleUserInfo, getGoogleUserInfoFromToken } from '../services/googleCalendar'
 import type { User } from '../models/types'
 
 export const authUsersRouter = Router()
@@ -203,6 +203,50 @@ authUsersRouter.get('/google/callback', async (req: Request, res: Response, next
     const token = generateToken({ userId: user.id, email: user.email, ...(user.isAdmin && { isAdmin: true }) })
     setAuthCookie(res, token)
     res.redirect(`${frontendUrl}?auth_token=${token}`)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// POST /google/mobile — exchange an access token from expo-auth-session for a JWT
+authUsersRouter.post('/google/mobile', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { accessToken } = req.body as Record<string, unknown>
+
+    if (typeof accessToken !== 'string' || !accessToken) {
+      res.status(400).json({ error: 'Access token is required' })
+      return
+    }
+
+    const { googleId, email, displayName } = await getGoogleUserInfoFromToken(accessToken)
+
+    let user = await getUserByGoogleId(googleId)
+
+    if (user) {
+      await updateUser(user.id, { displayName })
+      user = { ...user, displayName }
+    } else {
+      const byEmail = await getUserByEmail(email)
+      if (byEmail) {
+        await updateUser(byEmail.id, { googleId })
+        user = { ...byEmail, googleId }
+      } else {
+        const newUser: User = {
+          id: uuidv4(),
+          email,
+          googleId,
+          displayName,
+          emailVerified: true,
+          createdAt: new Date().toISOString(),
+        }
+        await saveUser(newUser)
+        user = newUser
+      }
+    }
+
+    const token = generateToken({ userId: user.id, email: user.email, ...(user.isAdmin && { isAdmin: true }) })
+    setAuthCookie(res, token)
+    res.status(200).json({ user: safeUser(user), token })
   } catch (err) {
     next(err)
   }
