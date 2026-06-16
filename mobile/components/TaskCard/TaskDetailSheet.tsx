@@ -129,6 +129,7 @@ export function TaskDetailSheet({ taskId, onClose }: Props) {
     <BottomSheetModal
       ref={sheetRef}
       snapPoints={SNAP_POINTS}
+      enableDynamicSizing={false}
       onDismiss={onClose}
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: '#1a1a2e' }}

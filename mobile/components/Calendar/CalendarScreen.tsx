@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { Calendar } from 'react-native-calendars'
 import type { DateData } from 'react-native-calendars'
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import { TaskChip } from '../TaskCard/TaskChip'
 import { TaskDetailSheet } from '../TaskCard/TaskDetailSheet'
 import { useAppStore } from '../../store/useAppStore'
@@ -109,7 +108,6 @@ export function CalendarScreen({ schedule }: Props) {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <BottomSheetModalProvider>
     <View className="flex-1 bg-bg-base">
 
       {/* ── Progress bar ──────────────────────────────────────────────────── */}
@@ -173,6 +171,5 @@ export function CalendarScreen({ schedule }: Props) {
         onClose={() => setSelectedTaskId(null)}
       />
     </View>
-    </BottomSheetModalProvider>
   )
 }
