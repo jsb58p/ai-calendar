@@ -3,7 +3,7 @@ import { View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LoadingScreen } from '../../components/LoadingScreen'
 import { GoalInputScreen } from '../../components/GoalInput/GoalInputScreen'
-import { CalendarScreen } from '../../components/CalendarScreen'
+import { CalendarScreen } from '../../components/Calendar/CalendarScreen'
 import { fetchGoals, fetchSchedule } from '../../api/client'
 import { useAppStore } from '../../store/useAppStore'
 
