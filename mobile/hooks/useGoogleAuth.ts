@@ -3,15 +3,14 @@ import * as SecureStore from 'expo-secure-store'
 import { useAppStore } from '../store/useAppStore'
 import { apiClient } from '../api/client'
 
-const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ?? ''
-const webClientId     = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? ''
-const googleEnabled   = androidClientId.length > 0 && webClientId.length > 0
+const webClientId   = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ?? ''
+const googleEnabled = webClientId.length > 0
 
 if (googleEnabled) {
   GoogleSignin.configure({
     webClientId,
-    androidClientId,
     scopes: ['openid', 'email', 'profile'],
+    offlineAccess: false,
   })
 }
 
