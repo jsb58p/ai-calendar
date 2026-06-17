@@ -4,9 +4,6 @@ dist
 .env.local
 db.json
 
-# Mobile credentials
-mobile/google-services.json
-
 # Playwright
 /test-results/
 /playwright-report/

@@ -12,7 +12,7 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "https://schedulerai-backend.onrender.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "930185619755-l7c39q7qg9bo5d83495mjgfeudvsilhk.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "930185619755-gngg8p6g7atr1527afe5i50r6b3iu0tm.apps.googleusercontent.com"
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "682150342369-hn026bsag6vcimcf92u744lulivp0st7.apps.googleusercontent.com"
       }
     },
     "production": {
@@ -20,7 +20,7 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "https://schedulerai-backend.onrender.com",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "930185619755-l7c39q7qg9bo5d83495mjgfeudvsilhk.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "930185619755-gngg8p6g7atr1527afe5i50r6b3iu0tm.apps.googleusercontent.com"
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "682150342369-hn026bsag6vcimcf92u744lulivp0st7.apps.googleusercontent.com"
       }
     }
   },
