@@ -17,6 +17,7 @@ export function useGoogleAuth() {
     webClientId:     webClientId     || 'placeholder',
     scopes: ['openid', 'email', 'profile'],
   })
+  console.log('Redirect URI:', request?.redirectUri)
 
   const setCurrentUser = useAppStore((s) => s.setCurrentUser)
 
